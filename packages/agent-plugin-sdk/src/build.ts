@@ -32,7 +32,7 @@ export interface BuildOptions {
  */
 export function build(plugin: Plugin, options: BuildOptions = {}): HarnessBuild[] {
   validatePlugin(plugin);
-  const targets = options.targets ?? allHarnessIds;
+  const targets = options.targets ?? allHarnessIds();
   return targets.map((id) => {
     const { files, warnings } = emitFor(getHarness(id), plugin);
     return { harness: id, files, warnings };

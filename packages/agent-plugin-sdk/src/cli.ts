@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, isAbsolute, join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import type { HarnessId, Plugin } from "./types.js";
@@ -11,6 +11,11 @@ import { listTools, callTool, contentToText } from "./runtime/tool.js";
 import { formatWarning } from "./warnings.js";
 import { writeTree } from "./util/fs.js";
 import { PluginValidationError } from "./validate.js";
+import {
+  harnessTemplate,
+  deriveDisplayName,
+  validateHarnessId,
+} from "./scaffold.js";
 
 const HELP = `agent-plugin — write a plugin once, ship it to every agent harness
 
@@ -19,16 +24,20 @@ Usage:
   agent-plugin install [plugin] [options]   Install skills into local harness dirs
   agent-plugin check   [plugin]             Validate a plugin definition
   agent-plugin tools   [plugin] [options]   List the plugin's tools, or invoke one locally
+  agent-plugin add-harness <id> [options]   Scaffold a new target harness module
 
 Arguments:
   plugin   Path to a plugin definition module (default: ./plugin.ts, ./plugin.js,
            ./agent-plugin.config.ts). Must default-export a definePlugin(...) result.
+  id       (add-harness) kebab-case id for the new harness, e.g. gemini, cursor.
 
 Options:
-  --target, -t <ids>   Comma-separated harnesses: ${allHarnessIds.join(", ")} (default: all)
-  --out, -o <dir>      Output dir for build (default: ./.aps-out)
+  --target, -t <ids>   Comma-separated harnesses: ${allHarnessIds().join(", ")} (default: all)
+  --out, -o <dir>      build: output dir (default: ./.aps-out)
+                       add-harness: dir to write the harness file (default: .)
+  --name <label>       add-harness: human-readable display name (default: derived from id)
   --global, -g         install: write to ~ global harness dirs instead of project
-  --dry-run            install: print what would be written without writing
+  --dry-run            install/add-harness: print what would be written without writing
   --call <name>        tools: invoke this tool instead of listing
   --args <json>        tools: JSON arguments for --call (default: {})
   --help, -h           Show this help
@@ -39,6 +48,7 @@ Examples:
   agent-plugin install -t opencode
   agent-plugin tools
   agent-plugin tools --call run_tests --args '{"pattern":"sum"}'
+  agent-plugin add-harness gemini --name "Gemini CLI"
 `;
 
 interface Args {
@@ -46,6 +56,7 @@ interface Args {
   plugin?: string;
   targets?: HarnessId[];
   out?: string;
+  name?: string;
   global?: boolean;
   dryRun?: boolean;
   call?: string;
@@ -78,6 +89,9 @@ function parseArgs(argv: string[]): Args {
       case "-o":
         args.out = argv[++i];
         break;
+      case "--name":
+        args.name = argv[++i];
+        break;
       case "--call":
         args.call = argv[++i];
         break;
@@ -90,6 +104,7 @@ function parseArgs(argv: string[]): Args {
           args.out = a.split("=")[1];
         else if (a.startsWith("--call=")) args.call = a.slice(7);
         else if (a.startsWith("--args=")) args.toolArgs = a.slice(7);
+        else if (a.startsWith("--name=")) args.name = a.slice(7);
         else positionals.push(a);
     }
   }
@@ -100,13 +115,20 @@ function parseArgs(argv: string[]): Args {
 
 function parseTargets(value: string | undefined): HarnessId[] {
   if (!value) fail("--target requires a value");
-  const ids = value!.split(",").map((s) => s.trim()) as HarnessId[];
-  for (const id of ids) {
-    if (!allHarnessIds.includes(id)) {
-      fail(`Unknown harness "${id}". Supported: ${allHarnessIds.join(", ")}`);
+  // Split only — validate later (in `main`, after the plugin module has loaded),
+  // so a harness the plugin registers via `registerHarness` is recognized too.
+  return value!.split(",").map((s) => s.trim()) as HarnessId[];
+}
+
+/** Validate requested targets against the registry once it's fully populated. */
+function validateTargets(targets: HarnessId[] | undefined): void {
+  if (!targets) return;
+  const known = allHarnessIds();
+  for (const id of targets) {
+    if (!known.includes(id)) {
+      fail(`Unknown harness "${id}". Registered: ${known.join(", ")}`);
     }
   }
-  return ids;
 }
 
 const DEFAULT_PLUGIN_FILES = [
@@ -184,6 +206,13 @@ async function main(): Promise<void> {
     process.exit(args.command ? 0 : args.help ? 0 : 1);
   }
 
+  // `add-harness` scaffolds a new harness file and needs no plugin definition,
+  // so handle it before we go looking for one.
+  if (args.command === "add-harness") {
+    runAddHarness(args);
+    return;
+  }
+
   await enableTypeScript();
   const pluginPath = resolvePluginPath(args.plugin);
   let plugin: Plugin;
@@ -192,6 +221,10 @@ async function main(): Promise<void> {
   } catch (err) {
     fail((err as Error).message);
   }
+
+  // The plugin module may have registered custom harnesses at import time, so
+  // validate requested targets only now that the registry is fully populated.
+  validateTargets(args.targets);
 
   try {
     switch (args.command) {
@@ -339,7 +372,7 @@ async function runTools(
 
 function runCheck(plugin: Plugin): void {
   // build() validates; if we got here the plugin already loaded, so validate explicitly.
-  build(plugin, { targets: [allHarnessIds[0]!] });
+  build(plugin, { targets: [allHarnessIds()[0]!] });
   const skills = plugin.skills?.length ?? 0;
   const commands = plugin.commands?.length ?? 0;
   const mcp = Object.keys(plugin.mcpServers ?? {}).length;
@@ -349,6 +382,41 @@ function runCheck(plugin: Plugin): void {
   console.log(
     `  ${tick()} ${bold(plugin.id)} is valid (${skills} skill(s), ${commands} command(s), ${agents} subagent(s), ${hooks} hook(s), ${mcp} MCP server(s), ${ctx}).`,
   );
+}
+
+/**
+ * Scaffold a new harness module. The id is the second positional
+ * (`agent-plugin add-harness <id>`); the file is written to `<out>/<id>.ts`.
+ */
+function runAddHarness(args: Args): void {
+  const id = args.plugin; // positionals[1]
+  const problem = validateHarnessId(id ?? "");
+  if (problem) fail(problem);
+
+  const displayName = args.name ?? deriveDisplayName(id!);
+  const outDir = args.out ?? ".";
+  const target = resolve(process.cwd(), outDir, `${id}.ts`);
+  const content = harnessTemplate(id!, displayName);
+
+  if (existsSync(target)) {
+    fail(`Refusing to overwrite existing file: ${target}`);
+  }
+
+  if (args.dryRun) {
+    console.log(`\n  ${tick()} Would write ${bold(target)}\n`);
+    console.log(content);
+    return;
+  }
+
+  mkdirSync(dirname(target), { recursive: true });
+  writeFileSync(target, content);
+
+  console.log(`\n  ${tick()} Created ${bold(target)}\n`);
+  console.log(`  ${bold("Next steps")}`);
+  console.log(`    1. Fill in the ${dim("TODO")}s: \`supports\`, \`emit\`, and install paths.`);
+  console.log(`    2. Import the file so it self-registers, e.g. in your plugin:`);
+  console.log(dim(`         import "./${id}.js";`));
+  console.log(`    3. Build/install as usual: ${dim(`agent-plugin build -t ${id}`)}\n`);
 }
 
 const bold = (s: string) => `\x1b[1m${s}\x1b[0m`;

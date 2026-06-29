@@ -20,8 +20,15 @@ export type { Feature, BuildWarning } from "./warnings.js";
 export { installSkills } from "./install.js";
 export type { InstallOptions, InstalledItem } from "./install.js";
 export { validatePlugin, PluginValidationError } from "./validate.js";
-export { harnesses, allHarnessIds, getHarness } from "./harnesses/index.js";
-export { supportMatrix } from "./harnesses/index.js";
+export {
+  registerHarness,
+  getHarness,
+  hasHarness,
+  allHarnessIds,
+  listHarnesses,
+  builtinHarnessIds,
+  supportMatrix,
+} from "./harnesses/index.js";
 export type { Harness, InstallScope, EmitContext } from "./harnesses/index.js";
 export type {
   Plugin,
@@ -49,4 +56,5 @@ export type {
   PluginAuthor,
   OutputFile,
   HarnessId,
+  BuiltinHarnessId,
 } from "./types.js";

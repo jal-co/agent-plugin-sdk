@@ -40,7 +40,7 @@ export function installSkills(
   options: InstallOptions = {},
 ): InstalledItem[] {
   validatePlugin(plugin);
-  const targets = options.targets ?? allHarnessIds;
+  const targets = options.targets ?? allHarnessIds();
   const scope = options.scope ?? "project";
   const results: InstalledItem[] = [];
 

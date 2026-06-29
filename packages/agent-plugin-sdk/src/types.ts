@@ -375,5 +375,13 @@ export interface ToolsModule {
   names?: string[];
 }
 
-/** Identifiers for the supported target harnesses. */
-export type HarnessId = "claude" | "codex" | "pi" | "opencode";
+/** Identifiers for the harnesses the SDK ships with out of the box. */
+export type BuiltinHarnessId = "claude" | "codex" | "pi" | "opencode";
+
+/**
+ * A target harness identifier. Built-in ids autocomplete; the `(string & {})`
+ * arm keeps the literal suggestions while still accepting an arbitrary id from
+ * an externally registered harness (see `registerHarness`). This is the same
+ * "open union" trick ai-sdk uses for provider/model ids.
+ */
+export type HarnessId = BuiltinHarnessId | (string & {});
