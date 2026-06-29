@@ -48,6 +48,7 @@ describe("skill emission across harnesses", () => {
       "claude",
       "codex",
       "copilot",
+      "cursor",
       "gemini",
       "opencode",
       "pi",
@@ -121,14 +122,14 @@ describe("skill emission across harnesses", () => {
   });
 
   it("emits identical skill bodies across all harnesses", () => {
-    const bodies = builds.map((b) => {
-      // Path prefix differs per harness (e.g. Copilot uses .github/skills/), so
-      // match the SKILL.md by suffix.
-      const file = b.files.find((f) =>
-        f.path.endsWith("skills/diff-review/SKILL.md"),
-      )!;
-      return file.content.split("---\n").slice(2).join("---\n").trim();
-    });
+    const bodies = builds
+      // Only harnesses that emit a SKILL.md (Cursor has no Agent Skills standard).
+      .map((b) =>
+        b.files.find((f) => f.path.endsWith("skills/diff-review/SKILL.md")),
+      )
+      .filter((f): f is NonNullable<typeof f> => f !== undefined)
+      .map((f) => f.content.split("---\n").slice(2).join("---\n").trim());
+    expect(bodies.length).toBeGreaterThan(1);
     expect(new Set(bodies).size).toBe(1);
   });
 });

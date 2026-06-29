@@ -34,6 +34,7 @@ describe("capability matrix (declarative source of truth)", () => {
       "opencode",
       "gemini",
       "copilot",
+      "cursor",
     ] as const) {
       expect(matrix[id]).toEqual(
         Object.fromEntries(

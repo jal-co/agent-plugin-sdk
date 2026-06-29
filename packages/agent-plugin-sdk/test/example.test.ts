@@ -59,6 +59,12 @@ const EXPECTED: Record<HarnessId, string[]> = {
     ".vscode/mcp.json",
     "mcp/server.ts",
   ],
+  cursor: [
+    "AGENTS.md",
+    ".cursor/commands/planreview-annotate.md",
+    ".cursor/mcp.json",
+    "mcp/server.ts",
+  ],
 };
 
 describe("planreview example generates a full set for every harness", () => {

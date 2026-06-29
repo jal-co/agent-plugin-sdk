@@ -52,6 +52,18 @@ export function toGeminiEntry(s: McpServer): Record<string, unknown> {
 }
 
 /**
+ * Cursor entry (`.cursor/mcp.json` `mcpServers` map). stdio is `command/args/
+ * env/cwd` (type inferred from the presence of `command`); remote is `url` +
+ * `headers`.
+ */
+export function toCursorEntry(s: McpServer): Record<string, unknown> {
+  if (isHttp(s)) {
+    return compact({ url: s.url, headers: s.headers });
+  }
+  return compact({ command: s.command, args: s.args, env: s.env, cwd: s.cwd });
+}
+
+/**
  * GitHub Copilot entry (`.vscode/mcp.json` `servers` map). Uses a `type`
  * discriminator (`stdio`/`http`); stdio → `command/args/env/cwd`, remote →
  * `url` + `headers`.

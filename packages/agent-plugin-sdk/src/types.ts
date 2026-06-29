@@ -406,7 +406,8 @@ export type BuiltinHarnessId =
   | "pi"
   | "opencode"
   | "gemini"
-  | "copilot";
+  | "copilot"
+  | "cursor";
 
 /**
  * A target harness identifier. Built-in ids autocomplete; the `(string & {})`
