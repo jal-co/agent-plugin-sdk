@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from "next/link";
 
 export default function HomePage() {
   return (
@@ -10,10 +10,7 @@ export default function HomePage() {
         shared tools from one TypeScript definition.
       </p>
       <p className="mt-6">
-        <Link
-          href="/docs"
-          className="font-medium underline underline-offset-4"
-        >
+        <Link href="/docs" className="font-medium underline underline-offset-4">
           Read the docs →
         </Link>
       </p>
