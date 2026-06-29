@@ -144,3 +144,6 @@ vite.config.ts.timestamp-*
 
 # agent-plugin-sdk build output
 .aps-out/
+
+# Turborepo
+.turbo

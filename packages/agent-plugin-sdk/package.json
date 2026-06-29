@@ -1,0 +1,65 @@
+{
+  "name": "@jal-co/agent-plugin-sdk",
+  "version": "0.1.0",
+  "description": "Write a plugin once, ship it to every agent harness. Define skills, commands, and tools in one place and generate native plugin artifacts for Claude Code, Codex, Pi, and OpenCode.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Justin Levine",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jal-co/agent-plugin-sdk.git",
+    "directory": "packages/agent-plugin-sdk"
+  },
+  "homepage": "https://github.com/jal-co/agent-plugin-sdk",
+  "bugs": "https://github.com/jal-co/agent-plugin-sdk/issues",
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "ai",
+    "agent",
+    "plugin",
+    "skills",
+    "claude-code",
+    "codex",
+    "opencode",
+    "pi"
+  ],
+  "bin": {
+    "agent-plugin": "./dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./runtime": {
+      "types": "./dist/runtime/index.d.ts",
+      "import": "./dist/runtime/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "cli": "tsx src/cli.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "tsx": "^4.19.2",
+    "yaml": "^2.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}

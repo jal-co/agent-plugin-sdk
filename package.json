@@ -1,52 +1,21 @@
 {
-  "name": "agent-plugin-sdk",
-  "version": "0.1.0",
-  "description": "Write a plugin once, ship it to every agent harness. Define skills, commands, and tools in one place and generate native plugin artifacts for Claude Code, Codex, Pi, and OpenCode.",
+  "name": "agent-plugin-sdk-monorepo",
+  "private": true,
   "type": "module",
-  "license": "MIT",
-  "keywords": [
-    "ai",
-    "agent",
-    "plugin",
-    "skills",
-    "claude-code",
-    "codex",
-    "opencode",
-    "pi"
-  ],
-  "bin": {
-    "agent-plugin": "./dist/cli.js"
-  },
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    },
-    "./runtime": {
-      "types": "./dist/runtime/index.d.ts",
-      "import": "./dist/runtime/index.js"
-    }
-  },
-  "files": [
-    "dist"
-  ],
   "scripts": {
-    "build": "tsup",
-    "dev": "tsup --watch",
-    "cli": "tsx src/cli.ts",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "typecheck": "tsc --noEmit"
+    "build": "turbo build",
+    "dev": "turbo dev",
+    "lint": "turbo lint",
+    "test": "turbo test",
+    "typecheck": "turbo typecheck",
+    "build:sdk": "turbo build --filter=@jal-co/agent-plugin-sdk",
+    "test:sdk": "turbo test --filter=@jal-co/agent-plugin-sdk",
+    "prepare": "husky"
   },
-  "dependencies": {
-    "tsx": "^4.19.2",
-    "yaml": "^2.6.0"
-  },
+  "packageManager": "pnpm@10.30.3",
   "devDependencies": {
-    "@types/node": "^22.10.0",
-    "tsup": "^8.3.5",
-    "typescript": "^5.7.2",
-    "vitest": "^2.1.8"
+    "husky": "^9.1.7",
+    "turbo": "^2"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
