@@ -1,0 +1,34 @@
+#!/bin/sh
+
+# Validate branch name follows Conventional Branch
+# https://conventional-branch.github.io/
+#
+# Format: <type>/<description>
+
+branch=$(git branch --show-current)
+
+# Allow main/master/develop
+if echo "$branch" | grep -qE "^(main|master|develop)$"; then
+  exit 0
+fi
+
+# Validate conventional branch format
+if ! echo "$branch" | grep -qE "^(feature|feat|bugfix|fix|hotfix|release|chore|docs|refactor|perf|test|ci|build|style)/[a-z0-9][a-z0-9.\-]*[a-z0-9]$"; then
+  echo ""
+  echo "❌ Invalid branch name: $branch"
+  echo ""
+  echo "Expected: <type>/<description>"
+  echo ""
+  echo "Types: feat, fix, hotfix, release, chore, docs, refactor, perf, test, ci, build, style"
+  echo ""
+  echo "Examples:"
+  echo "  feat/add-gemini-harness"
+  echo "  fix/install-relocation"
+  echo "  docs/harness-authoring-guide"
+  echo "  release/v0.2.0"
+  echo ""
+  echo "Rules: lowercase alphanumerics, hyphens, and dots only; no leading/trailing"
+  echo "or consecutive separators. See: https://conventional-branch.github.io/"
+  echo ""
+  exit 1
+fi
