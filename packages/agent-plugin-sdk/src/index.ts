@@ -44,6 +44,7 @@ export type {
   ClaudeSubagentOptions,
   CodexSubagentOptions,
   OpenCodeSubagentOptions,
+  GeminiSubagentOptions,
   Hook,
   HookEvent,
   HookCommand,

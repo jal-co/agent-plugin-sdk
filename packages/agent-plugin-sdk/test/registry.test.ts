@@ -55,7 +55,13 @@ function fakeHarness(id: string): Harness {
 
 describe("harness registry", () => {
   it("seeds the four built-ins", () => {
-    expect(builtinHarnessIds).toEqual(["claude", "codex", "pi", "opencode"]);
+    expect(builtinHarnessIds).toEqual([
+      "claude",
+      "codex",
+      "pi",
+      "opencode",
+      "gemini",
+    ]);
     for (const id of builtinHarnessIds) expect(hasHarness(id)).toBe(true);
   });
 

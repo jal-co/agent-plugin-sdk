@@ -5,12 +5,13 @@ import { claude } from "./claude.js";
 import { codex } from "./codex.js";
 import { pi } from "./pi.js";
 import { opencode } from "./opencode.js";
+import { gemini } from "./gemini.js";
 
 /**
  * The harnesses the SDK ships with. Their ids are the {@link BuiltinHarnessId}
  * union, so they always autocomplete.
  */
-const builtins = [claude, codex, pi, opencode] as const;
+const builtins = [claude, codex, pi, opencode, gemini] as const;
 
 /** The built-in harness ids, in their canonical order. */
 export const builtinHarnessIds: readonly BuiltinHarnessId[] = builtins.map(
@@ -89,5 +90,5 @@ export function getHarness(id: HarnessId): Harness {
   return h;
 }
 
-export { claude, codex, pi, opencode };
+export { claude, codex, pi, opencode, gemini };
 export type { Harness, InstallScope, EmitContext } from "./types.js";

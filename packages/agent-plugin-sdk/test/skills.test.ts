@@ -43,10 +43,11 @@ const plugin = definePlugin({
 describe("skill emission across harnesses", () => {
   const builds = build(plugin);
 
-  it("targets all four harnesses by default", () => {
+  it("targets all harnesses by default", () => {
     expect(builds.map((b) => b.harness).sort()).toEqual([
       "claude",
       "codex",
+      "gemini",
       "opencode",
       "pi",
     ]);

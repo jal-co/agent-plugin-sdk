@@ -27,7 +27,7 @@ describe("capability matrix (declarative source of truth)", () => {
   });
 
   it("matches every harness's own supports map", () => {
-    for (const id of ["claude", "codex", "pi", "opencode"] as const) {
+    for (const id of ["claude", "codex", "pi", "opencode", "gemini"] as const) {
       expect(matrix[id]).toEqual(
         Object.fromEntries(
           Object.entries(getHarness(id).supports),

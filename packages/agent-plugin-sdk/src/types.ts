@@ -252,6 +252,15 @@ export interface OpenCodeSubagentOptions {
   /** Agent mode. Defaults to `"subagent"`. */
   mode?: SubagentMode;
 }
+/** Gemini-specific subagent knobs. */
+export interface GeminiSubagentOptions {
+  /** Model id, e.g. `"gemini-3-flash-preview"`. Defaults to the session model. */
+  model?: string;
+  /** Model temperature (0.0–2.0). */
+  temperature?: number;
+  /** Maximum agent turns before the subagent must report back. */
+  maxTurns?: number;
+}
 
 /**
  * Per-harness subagent overrides — the harness-namespaced escape hatch (our
@@ -270,6 +279,7 @@ export interface SubagentHarnessOptions {
   claude?: ClaudeSubagentOptions;
   codex?: CodexSubagentOptions;
   opencode?: OpenCodeSubagentOptions;
+  gemini?: GeminiSubagentOptions;
 }
 
 /**
@@ -376,7 +386,12 @@ export interface ToolsModule {
 }
 
 /** Identifiers for the harnesses the SDK ships with out of the box. */
-export type BuiltinHarnessId = "claude" | "codex" | "pi" | "opencode";
+export type BuiltinHarnessId =
+  | "claude"
+  | "codex"
+  | "pi"
+  | "opencode"
+  | "gemini";
 
 /**
  * A target harness identifier. Built-in ids autocomplete; the `(string & {})`

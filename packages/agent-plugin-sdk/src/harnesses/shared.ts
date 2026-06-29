@@ -70,6 +70,40 @@ export function codexAgentToml(fields: {
 }
 
 /**
+ * Serialize a Gemini CLI custom command TOML file. Gemini commands are TOML with
+ * a required multiline `prompt` and an optional one-line `description`.
+ */
+export function geminiCommandToml(fields: {
+  description?: string;
+  prompt: string;
+}): string {
+  const lines: string[] = [];
+  if (fields.description) {
+    lines.push(`description = "${tomlBasic(fields.description)}"`);
+  }
+  const body = fields.prompt
+    .replace(/\\/g, "\\\\")
+    .replace(/"""/g, '\\"\\"\\"');
+  lines.push(`prompt = """\n${body.trimEnd()}\n"""`);
+  return lines.join("\n") + "\n";
+}
+
+/**
+ * Rewrite portable argument tokens to Gemini's templating. Gemini has a single
+ * all-arguments placeholder `{{args}}` (≈ our `$ARGUMENTS`) and no positional
+ * form, so `$ARGUMENTS` maps directly; positional `$1`/`$2` are left untouched
+ * (the caller warns). `$$` escapes and `\$` are preserved.
+ */
+export function rewriteArgsToGemini(body: string): string {
+  return body.replace(/(?<![\\\w$])\$ARGUMENTS\b/g, "{{args}}");
+}
+
+/** True if the body contains portable positional argument tokens (`$1`, `$2`, …). */
+export function hasPositionalArgs(body: string): boolean {
+  return /(?<![\\\w$])\$[1-9]\d*\b/.test(body);
+}
+
+/**
  * Emit a command markdown file (`<dirPrefix>/<name>.md`) with the harness's
  * frontmatter and a body. The body is taken as-is; callers transform argument
  * tokens first where needed.

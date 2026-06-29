@@ -41,6 +41,15 @@ const EXPECTED: Record<HarnessId, string[]> = {
     "plugin.ts",
     "opencode.json",
   ],
+  gemini: [
+    "gemini-extension.json",
+    "GEMINI.md",
+    "skills/diff-review/SKILL.md",
+    "commands/planreview-annotate.toml",
+    "agents/pr-reviewer.md",
+    "hooks/hooks.json",
+    "mcp/server.ts",
+  ],
 };
 
 describe("planreview example generates a full set for every harness", () => {

@@ -35,6 +35,23 @@ export function toCodexEntry(s: McpServer): Record<string, unknown> {
 }
 
 /**
+ * Gemini CLI entry (lives in `gemini-extension.json` / `settings.json`
+ * `mcpServers`). stdio → `{ command, args, env, cwd }`; remote uses `httpUrl`
+ * for streamable HTTP (not `url`, which Gemini treats as an SSE endpoint).
+ */
+export function toGeminiEntry(s: McpServer): Record<string, unknown> {
+  if (isHttp(s)) {
+    return compact({ httpUrl: s.url, headers: s.headers });
+  }
+  return compact({
+    command: s.command,
+    args: s.args,
+    env: s.env,
+    cwd: s.cwd,
+  });
+}
+
+/**
  * OpenCode `opencode.json` `mcp` entry. Note the divergences:
  * - `command` is a single ARRAY combining command + args
  * - local env key is `environment` (not `env`)
