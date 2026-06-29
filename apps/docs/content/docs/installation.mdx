@@ -1,0 +1,51 @@
+---
+title: Installation
+description: Add the SDK to your project and run the CLI.
+---
+
+## Install
+
+```package-install
+@jal-co/agent-plugin-sdk
+```
+
+The package ships three entrypoints:
+
+| Import | Use |
+| --- | --- |
+| `@jal-co/agent-plugin-sdk` | The portable definition layer (`definePlugin`, `defineSkill`, …) and the `build`/`installSkills` API. |
+| `@jal-co/agent-plugin-sdk/runtime` | Author custom tools (`defineTool`) whose handlers run across harnesses. |
+| `@jal-co/agent-plugin-sdk/harness` | Author a **custom harness** (`defineHarness`, `registerHarness`, emit helpers). |
+
+## The CLI
+
+The package exposes an `agent-plugin` binary:
+
+```bash
+agent-plugin build   [plugin] [options]   # Compile to native artifacts under an output dir
+agent-plugin install [plugin] [options]   # Install artifacts into local harness dirs
+agent-plugin check   [plugin]             # Validate a plugin definition
+agent-plugin tools   [plugin] [options]   # List/invoke the plugin's tools locally
+agent-plugin add-harness <id> [options]   # Scaffold a new target harness module
+```
+
+If you omit `[plugin]`, the CLI looks for `plugin.ts`, `plugin.js`, or
+`agent-plugin.config.ts` in the current directory.
+
+### Running a TypeScript plugin
+
+The CLI loads a TypeScript plugin file directly via the bundled `tsx` loader, so
+this works as-is:
+
+```bash
+npx agent-plugin build ./plugin.ts
+```
+
+Plain `.js`/`.mjs` plugin files work with `node` and need no loader.
+
+## Requirements
+
+- Node.js >= 18.
+- Any package manager (pnpm, npm, bun). Examples use pnpm.
+
+See the [CLI reference](/docs/reference/cli) for every flag.

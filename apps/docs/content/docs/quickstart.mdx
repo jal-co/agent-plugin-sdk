@@ -1,0 +1,88 @@
+---
+title: Quick start
+description: Define a plugin and compile it to every harness in a few minutes.
+---
+
+## 1. Define a plugin
+
+Create `plugin.ts` and default-export the result of `definePlugin`:
+
+```ts title="plugin.ts"
+import {
+  definePlugin,
+  defineSkill,
+  defineCommand,
+} from "@jal-co/agent-plugin-sdk";
+
+export default definePlugin({
+  id: "git-helper",
+  description: "Helpers for working with git in a repo.",
+  instructions: "## Git\n- Branch off main; never commit to it directly.",
+  skills: [
+    defineSkill({
+      name: "diff-review",
+      description:
+        "Summarize and risk-flag uncommitted changes. Use when the user asks what changed.",
+      instructions: "Run `git diff HEAD` and summarize the changes in 2-4 bullets.",
+    }),
+  ],
+  commands: [
+    defineCommand({
+      name: "commit",
+      description: "Write a conventional commit for the staged changes.",
+      body: "Write a Conventional Commit message for the staged diff. Args: $ARGUMENTS",
+    }),
+  ],
+});
+```
+
+## 2. Validate it
+
+```bash
+npx agent-plugin check
+```
+
+Invalid definitions report **every** problem at once via `PluginValidationError`,
+so you can fix them in one pass.
+
+## 3. Build the native artifacts
+
+```bash
+npx agent-plugin build
+```
+
+This writes a tree per target under `.aps-out/`:
+
+```
+.aps-out/
+├─ claude/      .claude-plugin/plugin.json, CLAUDE.md, skills/…, commands/…
+├─ gemini/      gemini-extension.json, GEMINI.md, skills/…, commands/*.toml
+├─ copilot/     .github/copilot-instructions.md, .github/prompts/*.prompt.md, …
+└─ …            one tree per harness you targeted
+```
+
+Target a subset with `-t`:
+
+```bash
+npx agent-plugin build -t claude,gemini,cursor
+```
+
+## 4. Try it locally
+
+`install` drops the artifacts straight into your project's local harness dirs
+(`.claude/`, `.gemini/`, `.cursor/`, …) so you can open the harness and use them:
+
+```bash
+npx agent-plugin install -t claude
+```
+
+Add `--global` to install into your home-directory harness dirs, or `--dry-run`
+to preview without writing.
+
+## Next steps
+
+<Cards>
+  <Card title="How it works" href="/docs/concepts/how-it-works" />
+  <Card title="Features" href="/docs/features/skills" />
+  <Card title="Authoring a harness" href="/docs/authoring-a-harness" />
+</Cards>

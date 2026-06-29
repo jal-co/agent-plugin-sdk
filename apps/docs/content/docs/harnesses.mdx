@@ -1,0 +1,33 @@
+---
+title: Harnesses
+description: The eight target harnesses and what each one supports.
+---
+
+`agent-plugin-sdk` compiles one portable plugin to the **native artifacts** each
+of these coding-agent harnesses loads on its own. A feature a target can't
+represent surfaces as a structured warning — never a broken file.
+
+## Support matrix
+
+The table below is generated from the SDK's own `supportMatrix()` at build time,
+so it can never drift from the code.
+
+<SupportMatrix />
+
+## Native formats
+
+Each harness emits at the exact paths and frontmatter it expects:
+
+| Harness | Skill / command home | Notes |
+| --- | --- | --- |
+| **Claude Code** | `.claude/` · `.mcp.json` · `CLAUDE.md` | Reference harness — supports every feature. |
+| **Codex** | `.agents/skills/` · `.codex/` | Subagents are TOML; commands are global-only. |
+| **Gemini CLI** | `gemini-extension.json` extension | TOML commands (`{{args}}`), `.gemini/agents/*.md`, MCP in the manifest. |
+| **GitHub Copilot** | `.github/` · `.vscode/mcp.json` | Prompt files, custom agents, PascalCase hooks. |
+| **Cursor** | `.cursor/` · `AGENTS.md` | No Agent Skills / subagents / mapped hooks. |
+| **Windsurf** | `.windsurf/` · `mcp_config.json` | Skills + workflows; global-only MCP. |
+| **Pi** | `.pi/` · `package.json` | No subagents / hooks / native MCP. |
+| **OpenCode** | `.opencode/` · `opencode.json` | No hooks. |
+
+See [How it works](/docs) for the common-denominator-plus-bespoke model behind
+the matrix.

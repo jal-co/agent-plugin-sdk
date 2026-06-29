@@ -17,6 +17,9 @@ importers:
 
   apps/docs:
     dependencies:
+      '@jal-co/agent-plugin-sdk':
+        specifier: workspace:*
+        version: link:../../packages/agent-plugin-sdk
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1

@@ -3,20 +3,65 @@ title: Introduction
 description: Write an agent plugin once, ship it to every harness.
 ---
 
-`agent-plugin-sdk` lets you define a plugin **once** in TypeScript and compiles
-it to the **native installable artifacts** each harness expects — no runtime, no
-wrapper. The output is exactly the files those harnesses load on their own.
+Each coding agent — Claude Code, Codex, Gemini CLI, Copilot, Cursor, Windsurf, Pi,
+and OpenCode — has its own plugin system, file layout, and frontmatter rules.
+Authoring the same skill eight times and keeping them in sync is busywork.
 
-## Supported harnesses
+`@jal-co/agent-plugin-sdk` lets you define a plugin **once** in TypeScript and
+compiles it to the **native installable artifacts** each harness expects. No
+runtime, no wrapper — the output is exactly the files those harnesses load on
+their own.
 
-<Cards>
-  <Card title="Claude Code" href="https://code.claude.com" />
-  <Card title="Codex" href="https://openai.com/codex" />
-  <Card title="Pi" href="https://github.com/earendil-works" />
-  <Card title="OpenCode" href="https://opencode.ai" />
-</Cards>
+```ts title="plugin.ts"
+import { definePlugin, defineSkill } from "@jal-co/agent-plugin-sdk";
+
+export default definePlugin({
+  id: "git-helper",
+  description: "Helpers for reviewing and committing changes in a git repo.",
+  skills: [
+    defineSkill({
+      name: "diff-review",
+      description:
+        "Summarize and risk-flag uncommitted changes. Use when the user asks what changed.",
+      allowedTools: ["Bash(git diff *)", "Bash(git status *)"],
+      instructions: "Run `git diff HEAD` and summarize the changes in 2-4 bullets, flagging anything risky.",
+    }),
+  ],
+});
+```
+
+```bash
+agent-plugin build      # → .aps-out/{claude,codex,gemini,copilot,cursor,windsurf,pi,opencode}/
+agent-plugin install    # → drops artifacts into your local harness dirs
+```
+
+## Why
+
+This is the "AI SDK for agent plugins": one portable definition, a small set of
+typed helpers, and a compiler that knows the quirks of each target — which
+frontmatter fields each harness recognizes, its naming rules, where its manifest
+lives, and where artifacts get installed. You get **one source of truth and eight
+correct outputs**.
+
+## Common denominator + bespoke
+
+Harnesses share a common feature set, but each also diverges. The SDK borrows
+[ai-sdk](https://ai-sdk.dev)'s approach for exactly this problem:
+
+- **A capability map.** Every harness declares which portable features it
+  `supports` — the single source of truth that [`supportMatrix()`](/docs/concepts/support-matrix)
+  reads straight off.
+- **Structured warnings, never silent drops.** When a target can't represent a
+  feature, `build` returns a `BuildWarning` and keeps going — nothing wrong is
+  written into the artifact tree.
+- **One namespaced escape hatch.** Per-harness knobs ride a `harness` bag keyed by
+  harness id, so model ids and other provider-scoped options stay out of the core.
 
 ## Next steps
 
-These docs are under construction. For now, see the
-[README](https://github.com/jal-co/agent-plugin-sdk) for the full feature tour.
+<Cards>
+  <Card title="Installation" href="/docs/installation" />
+  <Card title="Quick start" href="/docs/quickstart" />
+  <Card title="How it works" href="/docs/concepts/how-it-works" />
+  <Card title="Support matrix" href="/docs/concepts/support-matrix" />
+</Cards>

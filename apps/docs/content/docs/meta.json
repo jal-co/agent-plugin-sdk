@@ -1,0 +1,5 @@
+{
+  "title": "Docs",
+  "root": true,
+  "pages": ["index", "installation", "quickstart", "harnesses"]
+}
