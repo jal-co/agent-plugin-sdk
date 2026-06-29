@@ -62,6 +62,18 @@ Harnesses share a common feature set, but each also diverges. The SDK borrows
 <Cards>
   <Card title="Installation" href="/docs/installation" />
   <Card title="Quick start" href="/docs/quickstart" />
-  <Card title="How it works" href="/docs/concepts/how-it-works" />
-  <Card title="Support matrix" href="/docs/concepts/support-matrix" />
+  <Card title="Harnesses" href="/docs/harnesses" />
 </Cards>
+
+## Origins
+
+agent-plugin-sdk was created by [Sahaj Jain](https://github.com/jnsahaj). The
+ai-sdk-style architecture at its core — a portable plugin definition, a
+declarative capability map, and structured warnings instead of silent failures —
+is his, along with the original skills, commands, subagents, hooks, MCP, and
+shared-tool support across Claude Code, Codex, Pi, and OpenCode.
+
+This project continues that work with his blessing: more harnesses (Gemini CLI,
+GitHub Copilot, Cursor, and Windsurf), a runtime registry and an `add-harness`
+scaffold for adding your own, and the monorepo behind these docs. The foundation
+is his — we build on it.
