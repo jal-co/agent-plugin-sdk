@@ -52,6 +52,7 @@ describe("skill emission across harnesses", () => {
       "gemini",
       "opencode",
       "pi",
+      "windsurf",
     ]);
   });
 

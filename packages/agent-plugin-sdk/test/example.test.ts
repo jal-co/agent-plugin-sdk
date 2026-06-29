@@ -65,6 +65,13 @@ const EXPECTED: Record<HarnessId, string[]> = {
     ".cursor/mcp.json",
     "mcp/server.ts",
   ],
+  windsurf: [
+    "AGENTS.md",
+    ".windsurf/skills/diff-review/SKILL.md",
+    ".windsurf/workflows/planreview-annotate.md",
+    "mcp_config.json",
+    "mcp/server.ts",
+  ],
 };
 
 describe("planreview example generates a full set for every harness", () => {

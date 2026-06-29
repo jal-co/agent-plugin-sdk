@@ -1,8 +1,19 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { definePlugin, installSkills } from "../src/index.js";
+import {
+  defineCommand,
+  definePlugin,
+  defineSkill,
+  installSkills,
+} from "../src/index.js";
 
 const plugin = definePlugin({
   id: "tools-plugin",
@@ -80,5 +91,48 @@ describe("MCP install (JSON merge)", () => {
       expect(item.files).toHaveLength(0);
       expect(item.note).toBeTruthy();
     }
+  });
+});
+
+describe("skill/command relocation across non-standard harness layouts", () => {
+  const rich = definePlugin({
+    id: "rich",
+    description: "d",
+    skills: [
+      defineSkill({
+        name: "diff-review",
+        description: "x",
+        instructions: "do x",
+      }),
+    ],
+    commands: [
+      defineCommand({ name: "annotate", description: "x", body: "do it" }),
+    ],
+  });
+
+  it("Gemini: relocates the .toml command and the skill dir", () => {
+    const res = installSkills(rich, { targets: ["gemini"], scope: "project" });
+    const cmd = res.find((r) => r.kind === "command")!;
+    expect(cmd.files[0]).toBe(join(".gemini", "commands", "annotate.toml"));
+    expect(existsSync(cmd.files[0]!)).toBe(true);
+    const skill = res.find((r) => r.kind === "skill")!;
+    expect(skill.files[0]).toBe(
+      join(".gemini", "skills", "diff-review", "SKILL.md"),
+    );
+    expect(existsSync(skill.files[0]!)).toBe(true);
+  });
+
+  it("Copilot: relocates the .prompt.md command and .github/skills skill", () => {
+    const res = installSkills(rich, { targets: ["copilot"], scope: "project" });
+    const cmd = res.find((r) => r.kind === "command")!;
+    expect(cmd.files[0]).toBe(
+      join(".github", "prompts", "annotate.prompt.md"),
+    );
+    expect(existsSync(cmd.files[0]!)).toBe(true);
+    const skill = res.find((r) => r.kind === "skill")!;
+    expect(skill.files[0]).toBe(
+      join(".github", "skills", "diff-review", "SKILL.md"),
+    );
+    expect(existsSync(skill.files[0]!)).toBe(true);
   });
 });

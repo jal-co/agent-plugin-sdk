@@ -1,4 +1,4 @@
-import { join, dirname } from "node:path";
+import { join, dirname, basename } from "node:path";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import type { HarnessId, McpServer, OutputFile, Plugin } from "./types.js";
 import { allHarnessIds, getHarness } from "./harnesses/index.js";
@@ -293,12 +293,18 @@ function installSkill(
   scope: InstallScope,
   dryRun: boolean | undefined,
 ): InstalledItem {
-  const prefix = `skills/${name}/`;
+  // Match the skill subtree by the `skills/<name>/` segment wherever it appears
+  // (harnesses emit it under `skills/`, `.github/skills/`, `.windsurf/skills/`, …),
+  // then relativize each file to the part after that segment.
+  const seg = `skills/${name}/`;
   const dir = harness.skillInstallDir(scope, name);
   const files: string[] = [];
 
-  for (const f of emitted.filter((f) => f.path.startsWith(prefix))) {
-    const abs = join(dir, f.path.slice(prefix.length));
+  for (const f of emitted) {
+    const idx = f.path.indexOf(seg);
+    if (idx === -1) continue;
+    const rel = f.path.slice(idx + seg.length);
+    const abs = join(dir, rel);
     if (!dryRun) writeOutputFile(abs, { ...f, path: abs });
     files.push(abs);
   }
@@ -316,9 +322,11 @@ function installCommand(
   const target = harness.commandInstallPath(scope, name);
   if (!target) return null;
 
-  // The emitted command file lives at <prefix>/<name>.md; find it by basename
-  // so we stay agnostic to whether the harness used commands/ or prompts/.
-  const file = emitted.find((f) => f.path.endsWith(`/${name}.md`));
+  // Match the emitted command file by the install target's basename, so we stay
+  // agnostic to the directory (commands/ vs prompts/ vs workflows/) and the
+  // extension (.md vs .toml vs .prompt.md).
+  const wanted = basename(target);
+  const file = emitted.find((f) => basename(f.path) === wanted);
   if (!file) return null;
 
   if (!dryRun) writeOutputFile(target, { ...file, path: target });

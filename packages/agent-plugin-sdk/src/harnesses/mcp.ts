@@ -52,6 +52,17 @@ export function toGeminiEntry(s: McpServer): Record<string, unknown> {
 }
 
 /**
+ * Windsurf entry (`~/.codeium/windsurf/mcp_config.json` `mcpServers` map). stdio
+ * is `command/args/env`; remote uses `serverUrl` (Windsurf's spelling) + headers.
+ */
+export function toWindsurfEntry(s: McpServer): Record<string, unknown> {
+  if (isHttp(s)) {
+    return compact({ serverUrl: s.url, headers: s.headers });
+  }
+  return compact({ command: s.command, args: s.args, env: s.env, cwd: s.cwd });
+}
+
+/**
  * Cursor entry (`.cursor/mcp.json` `mcpServers` map). stdio is `command/args/
  * env/cwd` (type inferred from the presence of `command`); remote is `url` +
  * `headers`.

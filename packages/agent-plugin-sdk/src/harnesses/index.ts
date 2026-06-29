@@ -8,6 +8,7 @@ import { opencode } from "./opencode.js";
 import { gemini } from "./gemini.js";
 import { copilot } from "./copilot.js";
 import { cursor } from "./cursor.js";
+import { windsurf } from "./windsurf.js";
 
 /**
  * The harnesses the SDK ships with. Their ids are the {@link BuiltinHarnessId}
@@ -21,6 +22,7 @@ const builtins = [
   gemini,
   copilot,
   cursor,
+  windsurf,
 ] as const;
 
 /** The built-in harness ids, in their canonical order. */
@@ -100,5 +102,5 @@ export function getHarness(id: HarnessId): Harness {
   return h;
 }
 
-export { claude, codex, pi, opencode, gemini, copilot, cursor };
+export { claude, codex, pi, opencode, gemini, copilot, cursor, windsurf };
 export type { Harness, InstallScope, EmitContext } from "./types.js";
