@@ -147,3 +147,7 @@ vite.config.ts.timestamp-*
 
 # Turborepo
 .turbo
+
+# Next.js / Fumadocs generated
+next-env.d.ts
+.source/
