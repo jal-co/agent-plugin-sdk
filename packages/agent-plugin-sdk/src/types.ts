@@ -121,6 +121,13 @@ export interface OpenCodeCommandOptions {
   /** Model ref, e.g. `"anthropic/claude-sonnet-4"`. */
   model?: string;
 }
+/** Copilot-specific command (prompt file) knobs. */
+export interface CopilotCommandOptions {
+  /** Model name, e.g. `"GPT-5.2"` or `"Claude Sonnet 4.5"`. */
+  model?: string;
+  /** The agent the prompt runs under: `ask`, `agent`, `plan`, or a custom agent name. */
+  agent?: string;
+}
 
 /**
  * Per-harness command overrides — the harness-namespaced escape hatch (our
@@ -137,6 +144,7 @@ export interface OpenCodeCommandOptions {
 export interface CommandHarnessOptions {
   claude?: ClaudeCommandOptions;
   opencode?: OpenCodeCommandOptions;
+  copilot?: CopilotCommandOptions;
 }
 
 /**
@@ -252,6 +260,11 @@ export interface OpenCodeSubagentOptions {
   /** Agent mode. Defaults to `"subagent"`. */
   mode?: SubagentMode;
 }
+/** Copilot-specific subagent (custom agent) knobs. */
+export interface CopilotSubagentOptions {
+  /** Model name, e.g. `"GPT-5.2"` or `"Claude Sonnet 4.5"`. */
+  model?: string;
+}
 /** Gemini-specific subagent knobs. */
 export interface GeminiSubagentOptions {
   /** Model id, e.g. `"gemini-3-flash-preview"`. Defaults to the session model. */
@@ -280,6 +293,7 @@ export interface SubagentHarnessOptions {
   codex?: CodexSubagentOptions;
   opencode?: OpenCodeSubagentOptions;
   gemini?: GeminiSubagentOptions;
+  copilot?: CopilotSubagentOptions;
 }
 
 /**
@@ -391,7 +405,8 @@ export type BuiltinHarnessId =
   | "codex"
   | "pi"
   | "opencode"
-  | "gemini";
+  | "gemini"
+  | "copilot";
 
 /**
  * A target harness identifier. Built-in ids autocomplete; the `(string & {})`

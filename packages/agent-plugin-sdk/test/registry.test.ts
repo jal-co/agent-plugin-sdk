@@ -61,6 +61,7 @@ describe("harness registry", () => {
       "pi",
       "opencode",
       "gemini",
+      "copilot",
     ]);
     for (const id of builtinHarnessIds) expect(hasHarness(id)).toBe(true);
   });

@@ -50,6 +50,15 @@ const EXPECTED: Record<HarnessId, string[]> = {
     "hooks/hooks.json",
     "mcp/server.ts",
   ],
+  copilot: [
+    ".github/copilot-instructions.md",
+    ".github/skills/diff-review/SKILL.md",
+    ".github/prompts/planreview-annotate.prompt.md",
+    ".github/agents/pr-reviewer.agent.md",
+    ".github/copilot/hooks.json",
+    ".vscode/mcp.json",
+    "mcp/server.ts",
+  ],
 };
 
 describe("planreview example generates a full set for every harness", () => {

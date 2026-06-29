@@ -24,11 +24,12 @@ export const HOOK_EVENTS = {
     "session-start": "SessionStart",
   },
   copilot: {
-    "pre-tool-use": "preToolUse",
-    "post-tool-use": "postToolUse",
-    stop: "stop",
-    "user-prompt-submit": "userPromptSubmit",
-    "session-start": "sessionStart",
+    // VS Code Copilot hooks use PascalCase event names (identical to Claude's).
+    "pre-tool-use": "PreToolUse",
+    "post-tool-use": "PostToolUse",
+    stop: "Stop",
+    "user-prompt-submit": "UserPromptSubmit",
+    "session-start": "SessionStart",
   },
 } satisfies Record<string, Record<HookEvent, string>>;
 
@@ -79,9 +80,10 @@ export function buildMatcherHooks(
 }
 
 /**
- * Build the Copilot hook config — `{ version: 1, hooks: { <event>: [{ type,
- * bash, powershell?, timeoutSec?, comment? }] } }`. Copilot hooks are flat (no
- * matcher wrapper); the command itself decides what to intercept.
+ * Build the VS Code Copilot hook config — `{ hooks: { <PascalEvent>: [{ type:
+ * "command", command, windows?, timeout? }] } }`. Copilot hooks are flat (no
+ * matcher wrapper) and inspect `tool_name` themselves; timeouts are in seconds.
+ * A portable `matcher` has no slot here, so the caller warns when one is set.
  */
 export function buildCopilotHooks(hooks: Hook[]): Record<string, unknown> | null {
   if (hooks.length === 0) return null;
@@ -90,14 +92,13 @@ export function buildCopilotHooks(hooks: Hook[]): Record<string, unknown> | null
     const { event } = resolve(hook, "copilot");
     const entry: Record<string, unknown> = { type: "command" };
     if (typeof hook.command === "string") {
-      entry.bash = hook.command;
+      entry.command = hook.command;
     } else {
-      entry.bash = hook.command.bash;
-      if (hook.command.powershell) entry.powershell = hook.command.powershell;
+      entry.command = hook.command.bash;
+      if (hook.command.powershell) entry.windows = hook.command.powershell;
     }
-    if (hook.timeout !== undefined) entry.timeoutSec = hook.timeout;
-    if (hook.comment) entry.comment = hook.comment;
+    if (hook.timeout !== undefined) entry.timeout = hook.timeout;
     (out[event] ??= []).push(entry);
   }
-  return { version: 1, hooks: out };
+  return { hooks: out };
 }

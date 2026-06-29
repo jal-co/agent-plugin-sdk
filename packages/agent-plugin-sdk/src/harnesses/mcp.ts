@@ -52,6 +52,24 @@ export function toGeminiEntry(s: McpServer): Record<string, unknown> {
 }
 
 /**
+ * GitHub Copilot entry (`.vscode/mcp.json` `servers` map). Uses a `type`
+ * discriminator (`stdio`/`http`); stdio → `command/args/env/cwd`, remote →
+ * `url` + `headers`.
+ */
+export function toCopilotEntry(s: McpServer): Record<string, unknown> {
+  if (isHttp(s)) {
+    return compact({ type: "http", url: s.url, headers: s.headers });
+  }
+  return compact({
+    type: "stdio",
+    command: s.command,
+    args: s.args,
+    env: s.env,
+    cwd: s.cwd,
+  });
+}
+
+/**
  * OpenCode `opencode.json` `mcp` entry. Note the divergences:
  * - `command` is a single ARRAY combining command + args
  * - local env key is `environment` (not `env`)

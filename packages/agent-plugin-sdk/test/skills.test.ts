@@ -47,6 +47,7 @@ describe("skill emission across harnesses", () => {
     expect(builds.map((b) => b.harness).sort()).toEqual([
       "claude",
       "codex",
+      "copilot",
       "gemini",
       "opencode",
       "pi",
@@ -121,8 +122,12 @@ describe("skill emission across harnesses", () => {
 
   it("emits identical skill bodies across all harnesses", () => {
     const bodies = builds.map((b) => {
-      const md = fileMap(b.files).get("skills/diff-review/SKILL.md")!;
-      return md.split("---\n").slice(2).join("---\n").trim();
+      // Path prefix differs per harness (e.g. Copilot uses .github/skills/), so
+      // match the SKILL.md by suffix.
+      const file = b.files.find((f) =>
+        f.path.endsWith("skills/diff-review/SKILL.md"),
+      )!;
+      return file.content.split("---\n").slice(2).join("---\n").trim();
     });
     expect(new Set(bodies).size).toBe(1);
   });
