@@ -1,0 +1,11 @@
+core:changelogs:
+  - content: "---\npackages:\n  '@jalco/ap-sdk':\n    type: minor\n---\n\n## Install plugins straight from GitHub\n\n`ap-sdk install` and `ap-sdk check` now accept a GitHub source — `owner/repo`,\n`github:owner/repo`, or a github.com URL, with an optional `#ref` for a branch,\ntag, or commit. The repository is downloaded, **validated for compatibility with\nthe ap-sdk plugin format**, and only installed if it default-exports a valid\n`definePlugin(...)` result; otherwise the install is aborted with the reason.\n\nPass `--path <dir>` for a plugin in a subdirectory, and set `GITHUB_TOKEN` for\nprivate repos or a higher API rate limit.\n"
+    filename: 2026-06-30-install-from-github.md
+    v: 0.0.0
+core:packages:
+  - id: npm:@jal-co/docs
+    updated: true
+  - changelogIds:
+      - 2026-06-30-install-from-github.md
+    id: npm:@jalco/ap-sdk
+    updated: true
