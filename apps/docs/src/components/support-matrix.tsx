@@ -1,4 +1,9 @@
-import { allHarnessIds, FEATURES, getHarness, supportMatrix } from "ap-sdk";
+import {
+  allHarnessIds,
+  FEATURES,
+  getHarness,
+  supportMatrix,
+} from "@jalco/ap-sdk";
 
 /**
  * The feature × harness support table, generated from the SDK's own

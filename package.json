@@ -8,8 +8,8 @@
     "lint": "turbo lint",
     "test": "turbo test",
     "typecheck": "turbo typecheck",
-    "build:sdk": "turbo build --filter=ap-sdk",
-    "test:sdk": "turbo test --filter=ap-sdk",
+    "build:sdk": "turbo build --filter=@jalco/ap-sdk",
+    "test:sdk": "turbo test --filter=@jalco/ap-sdk",
     "tegami": "node scripts/tegami.mts",
     "prepare": "husky"
   },

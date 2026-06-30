@@ -1,7 +1,7 @@
 # AGENTS.md — ap-sdk
 
 <context>
-This monorepo publishes one package, `ap-sdk` (in `packages/agent-plugin-sdk/`),
+This monorepo publishes one package, `@jalco/ap-sdk` (in `packages/agent-plugin-sdk/`),
 plus a private docs site (`apps/docs/`, `@jal-co/docs`). Tooling is pnpm +
 Turborepo. This file extends the global agent rules (Conventional Commits,
 Conventional Branch, SemVer); it does not replace them. Rules here are additive
@@ -16,12 +16,12 @@ unless wrapped in `<project-override>`.
 
 | Path | Package | Published? |
 |---|---|---|
-| `packages/agent-plugin-sdk/` | `ap-sdk` | yes — npm |
+| `packages/agent-plugin-sdk/` | `@jalco/ap-sdk` | yes — npm |
 | `apps/docs/` | `@jal-co/docs` | no — private site |
 | `scripts/tegami.mts` | release config | — |
 
-The CLI binary is `ap-sdk`. The project/brand and GitHub repo remain
-`agent-plugin-sdk`; only the npm package and CLI are named `ap-sdk`.
+The npm package is `@jalco/ap-sdk` (org `jalco`); the CLI binary is `ap-sdk`.
+The project/brand and GitHub repo remain `agent-plugin-sdk` (org `jal-co`).
 
 </context>
 
@@ -104,8 +104,12 @@ Authentication is npm **trusted publishing (OIDC)** — there is no `NPM_TOKEN`.
 ## 5. Changelog Authoring
 
 <context>
-A changelog file is markdown under `.tegami/` with a `packages` frontmatter key.
-Two styles are accepted.
+A changelog file is markdown under `.tegami/`, named `YYYY-MM-DD-{hash}.md`, with
+a `packages` frontmatter key. Two styles are accepted. See the
+[changelog format docs](https://tegami.fuma-nama.dev/changelog) for the full spec.
+
+In `packages`, reference the package by name (`"@jalco/ap-sdk"`), id
+(`"npm:@jalco/ap-sdk"`), or group (`"group:…"`).
 </context>
 
 <examples>
@@ -114,7 +118,7 @@ Two styles are accepted.
 ```md
 ---
 packages:
-  "ap-sdk": minor
+  "@jalco/ap-sdk": minor
 ---
 
 ## Add the Windsurf harness
@@ -127,12 +131,12 @@ packages:
 <output>
 ```md
 ---
-packages: ["ap-sdk"]
+packages: ["@jalco/ap-sdk"]
 ---
 
-# Rename the package to ap-sdk
+# Scope the package under @jalco
 
-The published name and CLI are now `ap-sdk`.
+The published name is `@jalco/ap-sdk`; the CLI binary stays `ap-sdk`.
 
 ## Add a compact code-block option
 ```
@@ -145,10 +149,13 @@ highest bump found in the file wins.
 
 <rules>
 
-- Each user-facing change to `ap-sdk` MUST ship with a changelog file.
+- Each user-facing change to `@jalco/ap-sdk` MUST ship with a changelog file.
 - The bump type MUST follow §3 (Versioning).
-- The top heading of each section MUST read as a release note (what changed and
-  why), not an implementation diff.
+- Each file MUST have YAML frontmatter with `packages` and at least one `#`,
+  `##`, or `###` heading whose body reads as a user-facing release note (what
+  changed and why), not an implementation diff.
+- MUST NOT edit the publish lock (`.tegami/publish-lock.yaml`) or any package
+  `CHANGELOG.md` by hand — Tegami generates them.
 
 </rules>
 

@@ -30,7 +30,7 @@ jobs:
 
       # Tegami publishes whatever is on disk — build the SDK first.
       - name: Build
-        run: pnpm turbo build --filter=ap-sdk
+        run: pnpm turbo build --filter=@jalco/ap-sdk
 
       # Versions if changelogs are pending (opens a Version Packages PR),
       # otherwise publishes from the committed publish lock.

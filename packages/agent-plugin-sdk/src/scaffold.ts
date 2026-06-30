@@ -36,7 +36,7 @@ export function validateHarnessId(id: string): string | null {
 export function harnessTemplate(
   id: string,
   displayName: string,
-  pkg = "ap-sdk",
+  pkg = "@jalco/ap-sdk",
 ): string {
   const constName = id.replace(/-([a-z0-9])/g, (_m, c: string) => c.toUpperCase());
   return `import { homedir } from "node:os";
