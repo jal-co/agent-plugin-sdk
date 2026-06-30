@@ -8,7 +8,15 @@
   },
   "files": {
     "ignoreUnknown": true,
-    "includes": ["**", "!node_modules", "!.next", "!dist", "!build", "!.source"]
+    "includes": [
+      "**",
+      "!node_modules",
+      "!.next",
+      "!dist",
+      "!build",
+      "!.source",
+      "!brand"
+    ]
   },
   "css": {
     "parser": {
@@ -36,5 +44,21 @@
         "organizeImports": "on"
       }
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": [
+        "src/components/code-block.tsx",
+        "src/components/code-line.tsx",
+        "src/components/code-block-command.tsx",
+        "src/components/ui/svgs/**"
+      ],
+      "linter": {
+        "rules": {
+          "security": { "noDangerouslySetInnerHtml": "off" },
+          "a11y": { "noSvgWithoutTitle": "off" }
+        }
+      }
+    }
+  ]
 }

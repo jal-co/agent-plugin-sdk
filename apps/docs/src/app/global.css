@@ -1,10 +1,8 @@
 @import "tailwindcss";
-@import "fumadocs-ui/css/neutral.css";
-@import "fumadocs-ui/css/preset.css";
 @import "tw-animate-css";
+@plugin "@tailwindcss/typography";
 
-/* shadcn/ui theme — neutral B/W with amber/blue chart accents, Geist type.
-   Lives in its own (unprefixed) namespace alongside Fumadocs' `--fd-*` tokens. */
+/* shadcn/ui theme — neutral B/W with amber/blue chart accents, Geist type. */
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -123,13 +121,22 @@
   * {
     @apply border-border outline-ring/50;
   }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Shiki dual-theme token colors (the jalco CodeBlock emits per-token
+   --shiki-light / --shiki-dark vars; backgrounds are handled by the component). */
+.shiki,
+.shiki span {
+  color: var(--shiki-light);
+}
+.dark .shiki,
+.dark .shiki span {
+  color: var(--shiki-dark);
 }
 
 html {
   scrollbar-gutter: stable;
-}
-
-html > body[data-scroll-locked] {
-  margin-right: 0px !important;
-  --removed-body-scroll-bar-size: 0px !important;
 }

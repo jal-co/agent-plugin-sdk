@@ -5,9 +5,7 @@ description: Add the SDK to your project and run the CLI.
 
 ## Install
 
-```package-install
-@jal-co/agent-plugin-sdk
-```
+<NpmCommand command="npm install @jal-co/agent-plugin-sdk" />
 
 The package ships three entrypoints:
 
@@ -21,7 +19,7 @@ The package ships three entrypoints:
 
 The package exposes an `agent-plugin` binary:
 
-```bash
+```bash compact
 agent-plugin build   [plugin] [options]   # Compile to native artifacts under an output dir
 agent-plugin install [plugin] [options]   # Install artifacts into local harness dirs
 agent-plugin check   [plugin]             # Validate a plugin definition

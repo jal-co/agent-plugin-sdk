@@ -6,6 +6,12 @@
   <picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/group/npm/@jal-co/agent-plugin-sdk+github/stars/jal-co/agent-plugin-sdk+github/jal-co/agent-plugin-sdk/contributors+github/jal-co/agent-plugin-sdk/license.svg" /><img alt="badge group" src="https://shieldcn.dev/group/npm/@jal-co/agent-plugin-sdk+github/stars/jal-co/agent-plugin-sdk+github/jal-co/agent-plugin-sdk/contributors+github/jal-co/agent-plugin-sdk/license.svg?mode=light" /></picture>
 </p>
 
+<div align="center">
+
+[Homepage](https://ap-sdk.dev) · [Docs](https://ap-sdk.dev/docs) · [𝕏](https://x.com/jalcowastaken)
+
+</div>
+
 > Originally created by Sahaj Jain ([@jnsahaj](https://github.com/jnsahaj)) and continued here with permission.
 
 Each coding agent — Claude Code, Codex, Gemini CLI, Copilot, Cursor, Windsurf, Pi, OpenCode — has its own plugin system, file layout, and frontmatter rules. **agent-plugin-sdk** lets you define a plugin **once** in TypeScript and compiles it to the **native installable artifacts** each harness expects. No runtime, no wrapper — the output is exactly the files those harnesses load on their own.
@@ -21,7 +27,8 @@ export default definePlugin({
       name: "diff-review",
       description:
         "Summarize and risk-flag uncommitted changes. Use when the user asks what changed.",
-      instructions: "Run `git diff HEAD` and summarize the changes in 2-4 bullets.",
+      instructions:
+        "Run `git diff HEAD` and summarize the changes in 2-4 bullets.",
     }),
   ],
 });

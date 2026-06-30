@@ -1,0 +1,107 @@
+---
+title: Installing a plugin
+description: Drop a plugin's native artifacts straight into your agents' config dirs.
+---
+
+`build` compiles a plugin to a tree of native artifacts. `install` goes one step
+further and writes those artifacts **into the real directories your harnesses
+read** — so you (or anyone you share the plugin with) can open the agent and use
+the skills, commands, and tools immediately.
+
+```bash
+npx agent-plugin install
+```
+
+Install reuses the exact same output as `build`, so installed files are
+byte-for-byte identical — it just relocates each feature into the harness's live
+config dir instead of an output folder.
+
+## Scope: project vs global
+
+By default, install is **project-scoped** — it writes into the harness dirs in
+your current working directory (`.claude/`, `.gemini/`, `.cursor/`, …), so the
+plugin only applies to that repo. Pass `--global` (`-g`) to install into the
+home-directory dirs instead, making it available everywhere.
+
+| Scope | Flag | Writes to |
+| --- | --- | --- |
+| Project | _(default)_ | `./.claude/`, `./.gemini/`, … |
+| Global | `--global`, `-g` | `~/.claude/`, `~/.codex/`, … |
+
+## Target specific harnesses
+
+Without `--target`, install writes to every supported harness. Narrow it with
+`-t` (comma-separated):
+
+<CodeLine code="npx agent-plugin install -t claude,cursor" language="bash" />
+
+## Preview first
+
+`--dry-run` plans the install and prints exactly what would be written —
+per harness, per feature — without touching the filesystem:
+
+<CodeLine code="npx agent-plugin install --dry-run" language="bash" />
+
+## What gets written
+
+Install projects every feature in the plugin into each harness's native layout:
+
+- **Skills** → the harness's skills dir (`skills/<name>/SKILL.md`, …)
+- **Commands** → commands / prompts / workflows, in the right format per harness
+- **Subagents** → the harness's agents dir, when supported
+- **MCP servers** → merged into the harness's MCP config
+- **Hooks** → merged into the harness's hook config
+- **Instructions** → merged into the harness's context file (`CLAUDE.md`, …)
+
+Merges are **idempotent and non-destructive**. MCP servers, hooks, and
+instructions are merged into existing JSON/markdown under a delimited block
+keyed by the plugin id — re-running updates that block in place and leaves the
+rest of the file untouched. Install refuses to overwrite a config file it can't
+parse rather than clobber it.
+
+Features a harness doesn't support are skipped with a one-line note (for
+example, a harness without subagents), never written as the wrong file.
+
+## Installing a plugin you didn't write
+
+A plugin is just a module that default-exports `definePlugin(...)`. To install
+one from a file — including a plugin shipped inside a dependency — point the CLI
+at it:
+
+```bash compact
+npx agent-plugin install ./path/to/plugin.ts -t claude
+npx agent-plugin install ./node_modules/some-plugin/plugin.js -g
+```
+
+TypeScript plugin files load directly via the bundled `tsx` loader; plain
+`.js`/`.mjs` files need no loader.
+
+## Programmatic install
+
+Everything the CLI does is available as a function, so you can install from your
+own script or a `postinstall` step:
+
+```ts title="install.ts"
+import installPlugin from "./plugin";
+import { installSkills } from "@jal-co/agent-plugin-sdk";
+
+const installed = installSkills(installPlugin, {
+  targets: ["claude", "cursor"],
+  scope: "project", // or "global"
+  dryRun: false,
+});
+
+for (const item of installed) {
+  console.log(item.harness, item.kind, item.name, "→", item.files);
+}
+```
+
+`installSkills` returns an `InstalledItem[]` describing every file written (or,
+in a dry run, every file that would be written) plus any per-harness notes.
+
+## Next steps
+
+<Cards>
+  <Card title="Supported harnesses" href="/docs/harnesses" />
+  <Card title="Quick start" href="/docs/quickstart" />
+</Cards>

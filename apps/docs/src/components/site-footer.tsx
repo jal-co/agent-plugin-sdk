@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ComponentCredits } from "@/components/component-credits";
 
 const links = [
   { label: "Docs", href: "/docs" },
@@ -24,6 +25,7 @@ export function SiteFooter() {
               {link.label}
             </Link>
           ))}
+          <ComponentCredits />
         </nav>
         <p className="text-sm text-muted-foreground">
           MIT · originally by{" "}

@@ -1,17 +1,8 @@
-import {
-  DocsBody,
-  DocsDescription,
-  DocsPage,
-  DocsTitle,
-  MarkdownCopyButton,
-  ViewOptionsPopover,
-} from "fumadocs-ui/layouts/docs/page";
-import { createRelativeLink } from "fumadocs-ui/mdx";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { DocsToc } from "@/components/docs-toc";
 import { getMDXComponents } from "@/components/mdx";
-import { gitConfig } from "@/lib/shared";
-import { getPageImage, getPageMarkdownUrl, source } from "@/lib/source";
+import { getPageImage, source } from "@/lib/source";
 
 export default async function Page(props: PageProps<"/docs/[[...slug]]">) {
   const params = await props.params;
@@ -19,30 +10,31 @@ export default async function Page(props: PageProps<"/docs/[[...slug]]">) {
   if (!page) notFound();
 
   const MDX = page.data.body;
-  const markdownUrl = getPageMarkdownUrl(page).url;
+  const toc = page.data.toc;
 
   return (
-    <DocsPage toc={page.data.toc} full={page.data.full}>
-      <DocsTitle>{page.data.title}</DocsTitle>
-      <DocsDescription className="mb-0">
-        {page.data.description}
-      </DocsDescription>
-      <div className="flex flex-row gap-2 items-center border-b pb-6">
-        <MarkdownCopyButton markdownUrl={markdownUrl} />
-        <ViewOptionsPopover
-          markdownUrl={markdownUrl}
-          githubUrl={`https://github.com/${gitConfig.user}/${gitConfig.repo}/blob/${gitConfig.branch}/content/docs/${page.path}`}
-        />
+    <div className="mx-auto grid w-full max-w-[88rem] grid-cols-1 gap-10 px-6 py-10 md:px-10 lg:py-14 xl:grid-cols-[minmax(0,1fr)_14rem] xl:gap-12">
+      <div className="min-w-0">
+        <div className="flex w-full max-w-[48rem] flex-col gap-8">
+          <div className="flex flex-col gap-3 border-b border-border/60 pb-8">
+            <h1 className="text-balance text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+              {page.data.title}
+            </h1>
+            {page.data.description ? (
+              <p className="text-pretty text-lg leading-8 text-muted-foreground">
+                {page.data.description}
+              </p>
+            ) : null}
+          </div>
+
+          <div className="prose prose-zinc max-w-none dark:prose-invert prose-headings:scroll-mt-24 prose-headings:text-balance prose-p:text-pretty prose-pre:my-5 prose-code:before:content-none prose-code:after:content-none">
+            <MDX components={getMDXComponents()} />
+          </div>
+        </div>
       </div>
-      <DocsBody>
-        <MDX
-          components={getMDXComponents({
-            // this allows you to link to other pages with relative file paths
-            a: createRelativeLink(source, page),
-          })}
-        />
-      </DocsBody>
-    </DocsPage>
+
+      <DocsToc items={toc} />
+    </div>
   );
 }
 

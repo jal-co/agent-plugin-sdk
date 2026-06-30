@@ -1,6 +1,6 @@
-import { RootProvider } from "fumadocs-ui/provider/next";
-import "./global.css";
 import { Geist, Geist_Mono } from "next/font/google";
+import { ThemeProvider } from "@/components/theme-provider";
+import "./global.css";
 
 const fontSans = Geist({
   subsets: ["latin"],
@@ -19,8 +19,15 @@ export default function Layout({ children }: LayoutProps<"/">) {
       className={`${fontSans.variable} ${fontMono.variable} font-sans`}
       suppressHydrationWarning
     >
-      <body className="flex flex-col min-h-screen">
-        <RootProvider>{children}</RootProvider>
+      <body className="flex min-h-screen flex-col bg-background text-foreground antialiased">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );
