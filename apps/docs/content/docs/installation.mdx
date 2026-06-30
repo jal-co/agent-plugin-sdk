@@ -5,15 +5,15 @@ description: Add the SDK to your project and run the CLI.
 
 ## Install
 
-<NpmCommand command="npm install @jal-co/agent-plugin-sdk" />
+<NpmCommand command="npm install ap-sdk" />
 
 The package ships three entrypoints:
 
 | Import | Use |
 | --- | --- |
-| `@jal-co/agent-plugin-sdk` | The portable definition layer (`definePlugin`, `defineSkill`, …) and the `build`/`installSkills` API. |
-| `@jal-co/agent-plugin-sdk/runtime` | Author custom tools (`defineTool`) whose handlers run across harnesses. |
-| `@jal-co/agent-plugin-sdk/harness` | Author a **custom harness** (`defineHarness`, `registerHarness`, emit helpers). |
+| `ap-sdk` | The portable definition layer (`definePlugin`, `defineSkill`, …) and the `build`/`installSkills` API. |
+| `ap-sdk/runtime` | Author custom tools (`defineTool`) whose handlers run across harnesses. |
+| `ap-sdk/harness` | Author a **custom harness** (`defineHarness`, `registerHarness`, emit helpers). |
 
 ## The CLI
 

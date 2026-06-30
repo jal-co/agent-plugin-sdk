@@ -2,7 +2,7 @@
  * Harness-authoring toolkit — the public entrypoint for writing a *custom*
  * target harness, the analog of authoring an ai-sdk provider package.
  *
- * Import from `@jal-co/agent-plugin-sdk/harness`:
+ * Import from `ap-sdk/harness`:
  *
  * ```ts
  * import {
@@ -11,7 +11,7 @@
  *   emitSkillDir,
  *   compact,
  *   type Harness,
- * } from "@jal-co/agent-plugin-sdk/harness";
+ * } from "ap-sdk/harness";
  *
  * export const gemini = defineHarness({ ...  });
  * registerHarness(gemini);

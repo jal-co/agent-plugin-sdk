@@ -1,5 +1,5 @@
 {
-  "name": "@jal-co/agent-plugin-sdk",
+  "name": "ap-sdk",
   "version": "0.1.0",
   "description": "Write a plugin once, ship it to every agent harness. Define skills, commands, and tools in one place and generate native plugin artifacts for Claude Code, Codex, Pi, and OpenCode.",
   "type": "module",

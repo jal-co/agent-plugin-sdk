@@ -7,13 +7,13 @@ Each coding agent — Claude Code, Codex, Gemini CLI, Copilot, Cursor, Windsurf,
 and OpenCode — has its own plugin system, file layout, and frontmatter rules.
 Authoring the same skill eight times and keeping them in sync is busywork.
 
-`@jal-co/agent-plugin-sdk` lets you define a plugin **once** in TypeScript and
+`ap-sdk` lets you define a plugin **once** in TypeScript and
 compiles it to the **native installable artifacts** each harness expects. No
 runtime, no wrapper — the output is exactly the files those harnesses load on
 their own.
 
 ```ts title="plugin.ts"
-import { definePlugin, defineSkill } from "@jal-co/agent-plugin-sdk";
+import { definePlugin, defineSkill } from "ap-sdk";
 
 export default definePlugin({
   id: "git-helper",

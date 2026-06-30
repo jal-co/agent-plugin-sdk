@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/group/npm/@jal-co/agent-plugin-sdk+github/stars/jal-co/agent-plugin-sdk+github/jal-co/agent-plugin-sdk/contributors+github/jal-co/agent-plugin-sdk/license.svg" /><img alt="badge group" src="https://shieldcn.dev/group/npm/@jal-co/agent-plugin-sdk+github/stars/jal-co/agent-plugin-sdk+github/jal-co/agent-plugin-sdk/contributors+github/jal-co/agent-plugin-sdk/license.svg?mode=light" /></picture>
+  <picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/group/npm/ap-sdk+github/stars/jal-co/agent-plugin-sdk+github/jal-co/agent-plugin-sdk/contributors+github/jal-co/agent-plugin-sdk/license.svg" /><img alt="badge group" src="https://shieldcn.dev/group/npm/ap-sdk+github/stars/jal-co/agent-plugin-sdk+github/jal-co/agent-plugin-sdk/contributors+github/jal-co/agent-plugin-sdk/license.svg?mode=light" /></picture>
 </p>
 
 <div align="center">
@@ -17,7 +17,7 @@
 Each coding agent — Claude Code, Codex, Gemini CLI, Copilot, Cursor, Windsurf, Pi, OpenCode — has its own plugin system, file layout, and frontmatter rules. **agent-plugin-sdk** lets you define a plugin **once** in TypeScript and compiles it to the **native installable artifacts** each harness expects. No runtime, no wrapper — the output is exactly the files those harnesses load on their own.
 
 ```ts
-import { definePlugin, defineSkill } from "@jal-co/agent-plugin-sdk";
+import { definePlugin, defineSkill } from "ap-sdk";
 
 export default definePlugin({
   id: "git-helper",
@@ -42,7 +42,7 @@ agent-plugin install    # → drops artifacts into your local harness dirs
 ## Install
 
 ```bash
-pnpm add -D @jal-co/agent-plugin-sdk
+pnpm add -D ap-sdk
 ```
 
 [Docs](https://github.com/jal-co/agent-plugin-sdk) · [Examples](./packages/agent-plugin-sdk/examples)

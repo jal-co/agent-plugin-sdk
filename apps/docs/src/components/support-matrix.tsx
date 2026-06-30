@@ -1,9 +1,4 @@
-import {
-  allHarnessIds,
-  FEATURES,
-  getHarness,
-  supportMatrix,
-} from "@jal-co/agent-plugin-sdk";
+import { allHarnessIds, FEATURES, getHarness, supportMatrix } from "ap-sdk";
 
 /**
  * The feature × harness support table, generated from the SDK's own

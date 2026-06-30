@@ -8,8 +8,8 @@
     "lint": "turbo lint",
     "test": "turbo test",
     "typecheck": "turbo typecheck",
-    "build:sdk": "turbo build --filter=@jal-co/agent-plugin-sdk",
-    "test:sdk": "turbo test --filter=@jal-co/agent-plugin-sdk",
+    "build:sdk": "turbo build --filter=ap-sdk",
+    "test:sdk": "turbo test --filter=ap-sdk",
     "prepare": "husky"
   },
   "packageManager": "pnpm@10.30.3",

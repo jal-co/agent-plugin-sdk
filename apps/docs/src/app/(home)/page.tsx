@@ -1,4 +1,4 @@
-import { allHarnessIds, getHarness } from "@jal-co/agent-plugin-sdk";
+import { allHarnessIds, getHarness } from "ap-sdk";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { HarnessShowcase } from "@/components/harness-showcase";

@@ -83,7 +83,7 @@ own script or a `postinstall` step:
 
 ```ts title="install.ts"
 import installPlugin from "./plugin";
-import { installSkills } from "@jal-co/agent-plugin-sdk";
+import { installSkills } from "ap-sdk";
 
 const installed = installSkills(installPlugin, {
   targets: ["claude", "cursor"],
