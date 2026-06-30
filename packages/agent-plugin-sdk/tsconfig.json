@@ -16,8 +16,8 @@
     "outDir": "dist",
     "baseUrl": ".",
     "paths": {
-      "agent-plugin-sdk/runtime": ["./src/runtime/index.ts"],
-      "agent-plugin-sdk": ["./src/index.ts"]
+      "@jalco/ap-sdk/runtime": ["./src/runtime/index.ts"],
+      "@jalco/ap-sdk": ["./src/index.ts"]
     }
   },
   "include": ["src", "test", "examples"]

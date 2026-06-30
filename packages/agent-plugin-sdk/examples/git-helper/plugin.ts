@@ -3,7 +3,7 @@ import {
   defineSkill,
   defineCommand,
   defineSubagent,
-} from "agent-plugin-sdk";
+} from "@jalco/ap-sdk";
 
 const diffReview = defineSkill({
   name: "diff-review",

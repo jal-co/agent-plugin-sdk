@@ -76,6 +76,33 @@ npx ap-sdk install ./node_modules/some-plugin/plugin.js -g
 TypeScript plugin files load directly via the bundled `tsx` loader; plain
 `.js`/`.mjs` files need no loader.
 
+## Install straight from GitHub
+
+Pass a GitHub source instead of a path and the CLI downloads the repo, **checks
+it's a compatible ap-sdk plugin**, and installs it — no clone or manual
+download. Accepts `owner/repo`, `github:owner/repo`, or a full github.com URL,
+with an optional `#ref` (branch, tag, or commit):
+
+```bash compact
+npx ap-sdk install owner/repo
+npx ap-sdk install owner/repo#v1.2.0 -t claude
+npx ap-sdk install github:owner/repo --path examples/git-helper
+```
+
+Before anything is written, the source is fetched to a temp checkout and run
+through the same validation as a local plugin. If it doesn't default-export a
+valid `definePlugin(...)` result, the install is **aborted** with the reason —
+nothing touches your harness dirs.
+
+To check compatibility **without** installing, use `check` on the same source:
+
+<CodeLine code="npx ap-sdk check owner/repo" language="bash" />
+
+Use `--path <dir>` when the plugin lives in a subdirectory, and set
+`GITHUB_TOKEN` for private repos or to raise the API rate limit. The plugin's
+`@jalco/ap-sdk` import is resolved to the SDK running the install, so simple
+plugins need no dependency install of their own.
+
 ## Programmatic install
 
 Everything the CLI does is available as a function, so you can install from your

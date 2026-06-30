@@ -10,7 +10,9 @@ import { loadPluginTools } from "./load-tools.js";
 import { listTools, callTool, contentToText } from "./runtime/tool.js";
 import { formatWarning } from "./warnings.js";
 import { writeTree } from "./util/fs.js";
-import { PluginValidationError } from "./validate.js";
+import { fetchGithubPlugin, isGithubSpec } from "./github.js";
+import { DEFAULT_PLUGIN_FILES, locatePlugin } from "./plugin-files.js";
+import { PluginValidationError, validatePlugin } from "./validate.js";
 import {
   harnessTemplate,
   deriveDisplayName,
@@ -27,8 +29,11 @@ Usage:
   ap-sdk add-harness <id> [options]   Scaffold a new target harness module
 
 Arguments:
-  plugin   Path to a plugin definition module (default: ./plugin.ts, ./plugin.js,
-           ./ap-sdk.config.ts). Must default-export a definePlugin(...) result.
+  plugin   A local plugin module (default: ./plugin.ts, ./plugin.js,
+           ./ap-sdk.config.ts) or a GitHub source — owner/repo,
+           github:owner/repo, or a github.com URL. Must default-export a
+           definePlugin(...) result. Remote sources are fetched and checked for
+           compatibility before anything is installed.
   id       (add-harness) kebab-case id for the new harness, e.g. gemini, cursor.
 
 Options:
@@ -40,6 +45,8 @@ Options:
   --dry-run            install/add-harness: print what would be written without writing
   --call <name>        tools: invoke this tool instead of listing
   --args <json>        tools: JSON arguments for --call (default: {})
+  --path <dir>         GitHub source: path to the plugin within the repo
+  --ref <ref>          GitHub source: branch, tag, or commit (or owner/repo#ref)
   --help, -h           Show this help
 
 Examples:
@@ -49,6 +56,9 @@ Examples:
   ap-sdk tools
   ap-sdk tools --call run_tests --args '{"pattern":"sum"}'
   ap-sdk add-harness gemini --name "Gemini CLI"
+  ap-sdk install owner/repo
+  ap-sdk install github:owner/repo#main -t claude
+  ap-sdk check https://github.com/owner/repo --path examples/git-helper
 `;
 
 interface Args {
@@ -61,6 +71,8 @@ interface Args {
   dryRun?: boolean;
   call?: string;
   toolArgs?: string;
+  path?: string;
+  ref?: string;
   help?: boolean;
 }
 
@@ -98,6 +110,12 @@ function parseArgs(argv: string[]): Args {
       case "--args":
         args.toolArgs = argv[++i];
         break;
+      case "--path":
+        args.path = argv[++i];
+        break;
+      case "--ref":
+        args.ref = argv[++i];
+        break;
       default:
         if (a.startsWith("--target=")) args.targets = parseTargets(a.slice(9));
         else if (a.startsWith("-o=") || a.startsWith("--out="))
@@ -105,6 +123,8 @@ function parseArgs(argv: string[]): Args {
         else if (a.startsWith("--call=")) args.call = a.slice(7);
         else if (a.startsWith("--args=")) args.toolArgs = a.slice(7);
         else if (a.startsWith("--name=")) args.name = a.slice(7);
+        else if (a.startsWith("--path=")) args.path = a.slice(7);
+        else if (a.startsWith("--ref=")) args.ref = a.slice(6);
         else positionals.push(a);
     }
   }
@@ -131,27 +151,17 @@ function validateTargets(targets: HarnessId[] | undefined): void {
   }
 }
 
-const DEFAULT_PLUGIN_FILES = [
-  "plugin.ts",
-  "plugin.js",
-  "plugin.mjs",
-  "ap-sdk.config.ts",
-  "ap-sdk.config.js",
-];
-
 function resolvePluginPath(explicit?: string): string {
   if (explicit) {
     const p = isAbsolute(explicit) ? explicit : resolve(process.cwd(), explicit);
     if (!existsSync(p)) fail(`Plugin file not found: ${p}`);
     return p;
   }
-  for (const name of DEFAULT_PLUGIN_FILES) {
-    const p = join(process.cwd(), name);
-    if (existsSync(p)) return p;
-  }
+  const found = locatePlugin(process.cwd());
+  if (found) return found;
   fail(
     `No plugin file given and none of ${DEFAULT_PLUGIN_FILES.join(", ")} found in ${process.cwd()}.\n` +
-      `Pass a path: ap-sdk build ./my-plugin.ts`,
+      `Pass a local path or a GitHub source: ap-sdk install ./plugin.ts | owner/repo`,
   );
 }
 
@@ -214,22 +224,68 @@ async function main(): Promise<void> {
   }
 
   await enableTypeScript();
-  const pluginPath = resolvePluginPath(args.plugin);
+
+  // A plugin arg that looks like a GitHub source is fetched to a temp checkout,
+  // compatibility-checked, then handled like a local plugin file.
+  const remote = args.plugin ? isGithubSpec(args.plugin) : false;
+  let pluginPath: string;
+  let sourceLabel: string | undefined;
+
+  if (remote) {
+    const spec =
+      args.ref && !args.plugin!.includes("#")
+        ? `${args.plugin}#${args.ref}`
+        : args.plugin!;
+    try {
+      const fetched = await fetchGithubPlugin(spec, { path: args.path });
+      pluginPath = fetched.pluginPath;
+      sourceLabel = fetched.label;
+      // Remove the temp checkout on any exit, including fail()/process.exit.
+      process.on("exit", fetched.cleanup);
+    } catch (err) {
+      fail((err as Error).message);
+    }
+    console.log(`\n  ${tick()} Fetched ${bold(sourceLabel!)}`);
+  } else {
+    pluginPath = resolvePluginPath(args.plugin);
+  }
+
   let plugin: Plugin;
   try {
-    plugin = await loadPlugin(pluginPath);
+    plugin = await loadPlugin(pluginPath!);
   } catch (err) {
-    fail((err as Error).message);
+    fail(
+      remote
+        ? `${sourceLabel} is not a compatible ap-sdk plugin — it failed to load.\n${(err as Error).message}`
+        : (err as Error).message,
+    );
   }
 
   // The plugin module may have registered custom harnesses at import time, so
   // validate requested targets only now that the registry is fully populated.
   validateTargets(args.targets);
 
+  // Remote sources get an explicit compatibility gate before anything runs.
+  if (remote) {
+    try {
+      validatePlugin(plugin!);
+    } catch (err) {
+      if (err instanceof PluginValidationError) {
+        fail(
+          `${sourceLabel} is not compatible with the ap-sdk format:\n\n${err.message}`,
+        );
+      }
+      throw err;
+    }
+    printCompatibility(plugin!, sourceLabel!);
+    // `check` on a remote source is exactly this compatibility report.
+    if (args.command === "check") return;
+  }
+
   try {
     switch (args.command) {
       case "build":
-        runBuild(plugin!, args, pluginPath);
+        runBuild(plugin!, args, pluginPath!);
         break;
       case "install":
         runInstall(plugin!, args);
@@ -238,7 +294,7 @@ async function main(): Promise<void> {
         runCheck(plugin!);
         break;
       case "tools":
-        await runTools(plugin!, args, pluginPath);
+        await runTools(plugin!, args, pluginPath!);
         break;
       default:
         fail(`Unknown command "${args.command}". Run --help.`);
@@ -249,6 +305,19 @@ async function main(): Promise<void> {
     }
     throw err;
   }
+}
+
+/** Print the compatibility verdict + a one-line content summary for a plugin. */
+function printCompatibility(plugin: Plugin, label: string): void {
+  const skills = plugin.skills?.length ?? 0;
+  const commands = plugin.commands?.length ?? 0;
+  const agents = plugin.subagents?.length ?? 0;
+  const hooks = plugin.hooks?.length ?? 0;
+  const mcp = Object.keys(plugin.mcpServers ?? {}).length;
+  console.log(`  ${tick()} ${bold(label)} is a compatible ap-sdk plugin`);
+  console.log(
+    `      ${dim(`${plugin.id} — ${skills} skill(s), ${commands} command(s), ${agents} subagent(s), ${hooks} hook(s), ${mcp} MCP server(s)`)}\n`,
+  );
 }
 
 function runBuild(plugin: Plugin, args: Args, pluginPath: string): void {

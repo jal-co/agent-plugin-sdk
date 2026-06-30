@@ -1,4 +1,4 @@
-import { defineTool, text } from "agent-plugin-sdk/runtime";
+import { defineTool, text } from "@jalco/ap-sdk/runtime";
 
 export default [
   defineTool<{ msg: string }>({

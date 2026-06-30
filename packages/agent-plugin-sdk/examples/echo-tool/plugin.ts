@@ -1,4 +1,4 @@
-import { definePlugin } from "agent-plugin-sdk";
+import { definePlugin } from "@jalco/ap-sdk";
 
 export default definePlugin({
   id: "echo-tool",

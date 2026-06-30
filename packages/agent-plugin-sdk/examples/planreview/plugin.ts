@@ -4,7 +4,7 @@ import {
   defineCommand,
   defineSubagent,
   defineHook,
-} from "agent-plugin-sdk";
+} from "@jalco/ap-sdk";
 
 /**
  * `planreview` — a plannotator-scale example exercising every SDK feature.

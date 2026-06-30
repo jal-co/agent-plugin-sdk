@@ -5,7 +5,7 @@
 // the build copies this file into each harness output and the glue imports it.
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
-import { defineTool, text, json, error } from "agent-plugin-sdk/runtime";
+import { defineTool, text, json, error } from "@jalco/ap-sdk/runtime";
 
 /** Run `git diff` (optionally staged) in the working dir and return it. */
 const reviewDiff = defineTool<{ staged?: boolean }>({
