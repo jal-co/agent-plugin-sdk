@@ -17,18 +17,18 @@ import {
   validateHarnessId,
 } from "./scaffold.js";
 
-const HELP = `agent-plugin — write a plugin once, ship it to every agent harness
+const HELP = `ap-sdk — write a plugin once, ship it to every agent harness
 
 Usage:
-  agent-plugin build   [plugin] [options]   Compile to native artifacts under an output dir
-  agent-plugin install [plugin] [options]   Install skills into local harness dirs
-  agent-plugin check   [plugin]             Validate a plugin definition
-  agent-plugin tools   [plugin] [options]   List the plugin's tools, or invoke one locally
-  agent-plugin add-harness <id> [options]   Scaffold a new target harness module
+  ap-sdk build   [plugin] [options]   Compile to native artifacts under an output dir
+  ap-sdk install [plugin] [options]   Install skills into local harness dirs
+  ap-sdk check   [plugin]             Validate a plugin definition
+  ap-sdk tools   [plugin] [options]   List the plugin's tools, or invoke one locally
+  ap-sdk add-harness <id> [options]   Scaffold a new target harness module
 
 Arguments:
   plugin   Path to a plugin definition module (default: ./plugin.ts, ./plugin.js,
-           ./agent-plugin.config.ts). Must default-export a definePlugin(...) result.
+           ./ap-sdk.config.ts). Must default-export a definePlugin(...) result.
   id       (add-harness) kebab-case id for the new harness, e.g. gemini, cursor.
 
 Options:
@@ -43,12 +43,12 @@ Options:
   --help, -h           Show this help
 
 Examples:
-  agent-plugin build
-  agent-plugin build ./my-plugin.ts -t claude,codex -o dist
-  agent-plugin install -t opencode
-  agent-plugin tools
-  agent-plugin tools --call run_tests --args '{"pattern":"sum"}'
-  agent-plugin add-harness gemini --name "Gemini CLI"
+  ap-sdk build
+  ap-sdk build ./my-plugin.ts -t claude,codex -o dist
+  ap-sdk install -t opencode
+  ap-sdk tools
+  ap-sdk tools --call run_tests --args '{"pattern":"sum"}'
+  ap-sdk add-harness gemini --name "Gemini CLI"
 `;
 
 interface Args {
@@ -135,8 +135,8 @@ const DEFAULT_PLUGIN_FILES = [
   "plugin.ts",
   "plugin.js",
   "plugin.mjs",
-  "agent-plugin.config.ts",
-  "agent-plugin.config.js",
+  "ap-sdk.config.ts",
+  "ap-sdk.config.js",
 ];
 
 function resolvePluginPath(explicit?: string): string {
@@ -151,13 +151,13 @@ function resolvePluginPath(explicit?: string): string {
   }
   fail(
     `No plugin file given and none of ${DEFAULT_PLUGIN_FILES.join(", ")} found in ${process.cwd()}.\n` +
-      `Pass a path: agent-plugin build ./my-plugin.ts`,
+      `Pass a path: ap-sdk build ./my-plugin.ts`,
   );
 }
 
 /**
  * Enable importing TypeScript (`.ts`) plugin/tools modules directly by
- * registering the bundled `tsx` ESM loader. This lets `agent-plugin <cmd> foo.ts`
+ * registering the bundled `tsx` ESM loader. This lets `ap-sdk <cmd> foo.ts`
  * work as-is — no `tsx` wrapper around the CLI needed.
  */
 async function enableTypeScript(): Promise<void> {
@@ -178,7 +178,7 @@ async function loadPlugin(path: string): Promise<Plugin> {
       fail(
         `Failed to import ${path}.\n` +
           `Could not load the TypeScript loader (tsx). Reinstall dependencies, or run with:\n` +
-          `  npx tsx node_modules/.bin/agent-plugin ...\n` +
+          `  npx tsx node_modules/.bin/ap-sdk ...\n` +
           `Original error: ${(err as Error).message}`,
       );
     }
@@ -367,7 +367,7 @@ async function runTools(
     console.log(`  ${tick()} ${bold(t.name)}(${params.join(", ")})`);
     console.log(`      ${dim(t.description)}`);
   }
-  console.log(`\n  Invoke one:  ${dim("agent-plugin tools --call <name> --args '{…}'")}\n`);
+  console.log(`\n  Invoke one:  ${dim("ap-sdk tools --call <name> --args '{…}'")}\n`);
 }
 
 function runCheck(plugin: Plugin): void {
@@ -386,7 +386,7 @@ function runCheck(plugin: Plugin): void {
 
 /**
  * Scaffold a new harness module. The id is the second positional
- * (`agent-plugin add-harness <id>`); the file is written to `<out>/<id>.ts`.
+ * (`ap-sdk add-harness <id>`); the file is written to `<out>/<id>.ts`.
  */
 function runAddHarness(args: Args): void {
   const id = args.plugin; // positionals[1]
@@ -416,7 +416,7 @@ function runAddHarness(args: Args): void {
   console.log(`    1. Fill in the ${dim("TODO")}s: \`supports\`, \`emit\`, and install paths.`);
   console.log(`    2. Import the file so it self-registers, e.g. in your plugin:`);
   console.log(dim(`         import "./${id}.js";`));
-  console.log(`    3. Build/install as usual: ${dim(`agent-plugin build -t ${id}`)}\n`);
+  console.log(`    3. Build/install as usual: ${dim(`ap-sdk build -t ${id}`)}\n`);
 }
 
 const bold = (s: string) => `\x1b[1m${s}\x1b[0m`;

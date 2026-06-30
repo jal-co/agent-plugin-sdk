@@ -9,7 +9,7 @@ import {
 /**
  * `planreview` — a plannotator-scale example exercising every SDK feature.
  *
- * Author once here; `agent-plugin build` compiles it to native artifacts for
+ * Author once here; `ap-sdk build` compiles it to native artifacts for
  * Claude Code, Codex, Pi, and OpenCode. The shared tool logic lives in
  * `tools.ts` and is wired into each harness's runtime automatically.
  */

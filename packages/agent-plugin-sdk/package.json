@@ -29,7 +29,7 @@
     "pi"
   ],
   "bin": {
-    "agent-plugin": "./dist/cli.js"
+    "ap-sdk": "./dist/cli.js"
   },
   "exports": {
     ".": {

@@ -11,7 +11,7 @@ Claude Code, Codex, Pi, and OpenCode. It exercises every SDK feature.
 ## Generate it
 
 ```bash
-npx tsx node_modules/.bin/agent-plugin build examples/planreview/plugin.ts -o examples/planreview/dist
+npx tsx node_modules/.bin/ap-sdk build examples/planreview/plugin.ts -o examples/planreview/dist
 ```
 
 ## What each harness gets
@@ -53,8 +53,8 @@ npx tsx examples/planreview/dist/claude/mcp/server.ts   # speaks MCP over stdio
 Or skip the harness entirely and invoke a handler in-process:
 
 ```bash
-agent-plugin tools                       # list the plugin's tools
-agent-plugin tools --call review_diff    # run one and print the result
+ap-sdk tools                       # list the plugin's tools
+ap-sdk tools --call review_diff    # run one and print the result
 ```
 
 In Pi and OpenCode the same handlers run via the generated `extension.ts` / `plugin.ts`.

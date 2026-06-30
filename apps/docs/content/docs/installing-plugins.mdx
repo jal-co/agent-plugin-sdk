@@ -9,7 +9,7 @@ read** — so you (or anyone you share the plugin with) can open the agent and u
 the skills, commands, and tools immediately.
 
 ```bash
-npx agent-plugin install
+npx ap-sdk install
 ```
 
 Install reuses the exact same output as `build`, so installed files are
@@ -33,14 +33,14 @@ home-directory dirs instead, making it available everywhere.
 Without `--target`, install writes to every supported harness. Narrow it with
 `-t` (comma-separated):
 
-<CodeLine code="npx agent-plugin install -t claude,cursor" language="bash" />
+<CodeLine code="npx ap-sdk install -t claude,cursor" language="bash" />
 
 ## Preview first
 
 `--dry-run` plans the install and prints exactly what would be written —
 per harness, per feature — without touching the filesystem:
 
-<CodeLine code="npx agent-plugin install --dry-run" language="bash" />
+<CodeLine code="npx ap-sdk install --dry-run" language="bash" />
 
 ## What gets written
 
@@ -69,8 +69,8 @@ one from a file — including a plugin shipped inside a dependency — point the
 at it:
 
 ```bash compact
-npx agent-plugin install ./path/to/plugin.ts -t claude
-npx agent-plugin install ./node_modules/some-plugin/plugin.js -g
+npx ap-sdk install ./path/to/plugin.ts -t claude
+npx ap-sdk install ./node_modules/some-plugin/plugin.js -g
 ```
 
 TypeScript plugin files load directly via the bundled `tsx` loader; plain

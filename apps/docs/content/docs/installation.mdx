@@ -17,18 +17,18 @@ The package ships three entrypoints:
 
 ## The CLI
 
-The package exposes an `agent-plugin` binary:
+The package exposes an `ap-sdk` binary:
 
 ```bash compact
-agent-plugin build   [plugin] [options]   # Compile to native artifacts under an output dir
-agent-plugin install [plugin] [options]   # Install artifacts into local harness dirs
-agent-plugin check   [plugin]             # Validate a plugin definition
-agent-plugin tools   [plugin] [options]   # List/invoke the plugin's tools locally
-agent-plugin add-harness <id> [options]   # Scaffold a new target harness module
+ap-sdk build   [plugin] [options]   # Compile to native artifacts under an output dir
+ap-sdk install [plugin] [options]   # Install artifacts into local harness dirs
+ap-sdk check   [plugin]             # Validate a plugin definition
+ap-sdk tools   [plugin] [options]   # List/invoke the plugin's tools locally
+ap-sdk add-harness <id> [options]   # Scaffold a new target harness module
 ```
 
 If you omit `[plugin]`, the CLI looks for `plugin.ts`, `plugin.js`, or
-`agent-plugin.config.ts` in the current directory.
+`ap-sdk.config.ts` in the current directory.
 
 ### Running a TypeScript plugin
 
@@ -36,7 +36,7 @@ The CLI loads a TypeScript plugin file directly via the bundled `tsx` loader, so
 this works as-is:
 
 ```bash
-npx agent-plugin build ./plugin.ts
+npx ap-sdk build ./plugin.ts
 ```
 
 Plain `.js`/`.mjs` plugin files work with `node` and need no loader.

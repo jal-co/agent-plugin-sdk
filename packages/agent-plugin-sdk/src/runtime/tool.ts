@@ -87,7 +87,7 @@ export interface ToolInfo {
   parameters: JsonSchema;
 }
 
-/** List a tool set's public surface — used by the `agent-plugin tools` runner. */
+/** List a tool set's public surface — used by the `ap-sdk tools` runner. */
 export function listTools(tools: Tool[]): ToolInfo[] {
   return tools.map((t) => ({
     name: t.name,
@@ -100,7 +100,7 @@ export function listTools(tools: Tool[]): ToolInfo[] {
  * Invoke a tool by name, in-process. The local-test primitive: call a plugin's
  * `defineTool` handlers directly — no harness, no MCP server, no publish — and
  * assert on the {@link ToolResult}. Write vitest tests against it, or drive it
- * from `agent-plugin tools <name>`.
+ * from `ap-sdk tools <name>`.
  */
 export async function callTool(
   tools: Tool[],

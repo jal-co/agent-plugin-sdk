@@ -9,7 +9,7 @@ import type { Tool } from "./runtime/tool.js";
  * return its default-exported `Tool[]`. Resolves the path relative to the plugin
  * definition file, then dynamic-imports it.
  *
- * This is the loader behind `agent-plugin tools`; pair it with `callTool` /
+ * This is the loader behind `ap-sdk tools`; pair it with `callTool` /
  * `listTools` from `agent-plugin-sdk/runtime` to test handlers in-process. Run it
  * under a TypeScript loader (e.g. `tsx`) so a `.ts` tools module imports cleanly.
  */

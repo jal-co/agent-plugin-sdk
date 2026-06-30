@@ -39,7 +39,7 @@ export default definePlugin({
 ## 2. Validate it
 
 ```bash
-npx agent-plugin check
+npx ap-sdk check
 ```
 
 Invalid definitions report **every** problem at once via `PluginValidationError`,
@@ -48,7 +48,7 @@ so you can fix them in one pass.
 ## 3. Build the native artifacts
 
 ```bash
-npx agent-plugin build
+npx ap-sdk build
 ```
 
 This writes a tree per target under `.aps-out/`:
@@ -64,7 +64,7 @@ This writes a tree per target under `.aps-out/`:
 Target a subset with `-t`:
 
 ```bash
-npx agent-plugin build -t claude,gemini,cursor
+npx ap-sdk build -t claude,gemini,cursor
 ```
 
 ## 4. Try it locally
@@ -73,7 +73,7 @@ npx agent-plugin build -t claude,gemini,cursor
 (`.claude/`, `.gemini/`, `.cursor/`, …) so you can open the harness and use them:
 
 ```bash
-npx agent-plugin install -t claude
+npx ap-sdk install -t claude
 ```
 
 Add `--global` to install into your home-directory harness dirs, or `--dry-run`

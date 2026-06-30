@@ -35,8 +35,8 @@ export default definePlugin({
 ```
 
 ```bash
-agent-plugin build      # → .aps-out/{claude,codex,gemini,copilot,cursor,windsurf,pi,opencode}/
-agent-plugin install    # → drops artifacts into your local harness dirs
+ap-sdk build      # → .aps-out/{claude,codex,gemini,copilot,cursor,windsurf,pi,opencode}/
+ap-sdk install    # → drops artifacts into your local harness dirs
 ```
 
 ## Install
