@@ -1,0 +1,36 @@
+name: Tegami PR
+
+# Builds a release-preview artifact for pull requests. Runs untrusted PR code,
+# so it stays on `pull_request` (read-only) — the comment is posted by the
+# separate, trusted "Tegami PR Comment" workflow via workflow_run.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Release preview
+        run: pnpm tegami pr preview --artifact tegami-pr-preview.md
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tegami-pr-preview
+          path: tegami-pr-preview.md

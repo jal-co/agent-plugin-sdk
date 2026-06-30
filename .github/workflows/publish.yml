@@ -1,0 +1,40 @@
+name: Publish
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency: publish-${{ github.ref }}
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # push the version branch + git tags
+      pull-requests: write # open/update the Version Packages PR
+      id-token: write # npm trusted publishing (OIDC) — no NPM_TOKEN needed
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Tegami publishes whatever is on disk — build the SDK first.
+      - name: Build
+        run: pnpm turbo build --filter=ap-sdk
+
+      # Versions if changelogs are pending (opens a Version Packages PR),
+      # otherwise publishes from the committed publish lock.
+      - name: Version & publish
+        run: pnpm tegami ci
+        env:
+          GITHUB_TOKEN: ${{ github.token }}

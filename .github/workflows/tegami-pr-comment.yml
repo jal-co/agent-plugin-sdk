@@ -1,0 +1,33 @@
+name: Tegami PR Comment
+
+# Posts the release-preview artifact from "Tegami PR" as a pull request comment.
+# Runs in the trusted base-repo context (workflow_run) so it can comment safely.
+on:
+  workflow_run:
+    workflows: [Tegami PR]
+    types: [completed]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  comment:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.event == 'pull_request' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Post release preview comment
+        run: pnpm tegami pr comment
+        env:
+          GITHUB_TOKEN: ${{ github.token }}

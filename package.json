@@ -10,11 +10,13 @@
     "typecheck": "turbo typecheck",
     "build:sdk": "turbo build --filter=ap-sdk",
     "test:sdk": "turbo test --filter=ap-sdk",
+    "tegami": "node scripts/tegami.mts",
     "prepare": "husky"
   },
   "packageManager": "pnpm@10.30.3",
   "devDependencies": {
     "husky": "^9.1.7",
+    "tegami": "^0.2.1",
     "turbo": "^2"
   },
   "pnpm": {
