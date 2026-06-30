@@ -1,7 +1,9 @@
 [commit]
 conventional_commits = true
 subject_capitalized = false
-subject_imperative = true
+# Disabled: the heuristic false-flags valid imperative verbs (e.g. "unblock"),
+# and the husky commit-msg hook doesn't enforce mood either.
+subject_imperative = false
 subject_max_length = 80
 subject_min_length = 5
 allow_commit_types = ["feat", "fix", "docs", "style", "refactor", "perf", "test", "chore", "ci", "build", "revert"]
