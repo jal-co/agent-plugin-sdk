@@ -13,7 +13,7 @@ export default async function Page(props: PageProps<"/docs/[[...slug]]">) {
   const toc = page.data.toc;
 
   return (
-    <div className="mx-auto grid w-full max-w-[88rem] grid-cols-1 gap-10 px-6 py-10 md:px-10 lg:py-14 xl:grid-cols-[minmax(0,1fr)_14rem] xl:gap-12">
+    <div className="mx-auto grid w-full max-w-[88rem] grid-cols-1 gap-10 px-6 pb-16 md:px-10 xl:grid-cols-[minmax(0,1fr)_14rem] xl:gap-12">
       <div className="min-w-0">
         <div className="flex w-full max-w-[48rem] flex-col gap-8">
           <div className="flex flex-col gap-3 border-b border-border/60 pb-8">

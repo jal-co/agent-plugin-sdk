@@ -15,7 +15,8 @@
       "!dist",
       "!build",
       "!.source",
-      "!brand"
+      "!brand",
+      "!public"
     ]
   },
   "css": {

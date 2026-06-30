@@ -12,6 +12,27 @@ export function ThemeToggle() {
 
   const isDark = mounted && resolvedTheme === "dark";
 
+  // Press "D" anywhere (outside text fields) to toggle light/dark.
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key.toLowerCase() !== "d" || e.metaKey || e.ctrlKey || e.altKey) {
+        return;
+      }
+      const t = e.target as HTMLElement | null;
+      if (
+        t &&
+        (t.tagName === "INPUT" ||
+          t.tagName === "TEXTAREA" ||
+          t.isContentEditable)
+      ) {
+        return;
+      }
+      setTheme(resolvedTheme === "dark" ? "light" : "dark");
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [resolvedTheme, setTheme]);
+
   return (
     <Button
       variant="ghost"

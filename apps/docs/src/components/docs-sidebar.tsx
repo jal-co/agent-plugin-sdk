@@ -17,11 +17,14 @@ function NavList({
   onNavigate?: () => void;
 }) {
   return (
-    <nav className="flex flex-col gap-5">
+    <nav className="flex flex-col gap-6">
       {groups.map((group, i) => (
-        <div key={group.title ?? `group-${i}`} className="flex flex-col gap-1">
+        <div
+          key={group.title ?? `group-${i}`}
+          className="flex flex-col gap-0.5"
+        >
           {group.title ? (
-            <p className="px-3 pb-0.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/70">
+            <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               {group.title}
             </p>
           ) : null}
@@ -34,18 +37,12 @@ function NavList({
                 onClick={onNavigate}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "group/link relative flex items-center rounded-lg px-3 py-1.5 text-sm leading-5 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/50",
+                  "flex items-center rounded-lg px-3 py-2 text-sm leading-5 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/50",
                   active
-                    ? "bg-accent font-medium text-foreground"
-                    : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
+                    ? "bg-accent font-medium text-foreground shadow-sm"
+                    : "text-foreground/70 hover:bg-accent/50 hover:text-foreground",
                 )}
               >
-                <span
-                  className={cn(
-                    "absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-full bg-primary transition-opacity",
-                    active ? "opacity-100" : "opacity-0",
-                  )}
-                />
                 <span className="truncate">{item.title}</span>
               </Link>
             );
@@ -61,10 +58,8 @@ export function DocsSidebar({ groups }: { groups: DocsNavGroup[] }) {
   const pathname = usePathname();
 
   return (
-    <div className="sticky top-20 m-3 rounded-2xl border border-border/60 bg-card/60 shadow-sm backdrop-blur-sm supports-[backdrop-filter]:bg-card/50">
-      <div className="max-h-[calc(100vh-6.5rem)] overflow-y-auto p-3">
-        <NavList groups={groups} pathname={pathname} />
-      </div>
+    <div className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto pr-2 pb-10">
+      <NavList groups={groups} pathname={pathname} />
     </div>
   );
 }

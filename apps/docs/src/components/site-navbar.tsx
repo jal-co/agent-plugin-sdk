@@ -16,6 +16,7 @@
  * ───────────────────────────────────────────────────────── */
 
 import { motion, useMotionValueEvent, useScroll } from "motion/react";
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -39,19 +40,22 @@ const SHELL = {
 const LINKS = [
   { label: "Docs", href: "/docs" },
   { label: "Harnesses", href: "/docs/harnesses" },
-  { label: "Quick start", href: "/docs/quickstart" },
+  { label: "Changelog", href: "/docs/changelog" },
 ];
 
 function Logo() {
   return (
-    <Link
-      href="/"
-      className="flex items-center gap-2 font-mono text-sm font-medium tracking-tight"
-    >
-      <span className="grid size-6 place-items-center rounded-md bg-primary text-[11px] font-bold text-primary-foreground">
-        a
-      </span>
-      agent-plugin-sdk
+    <Link href="/" className="flex items-center" aria-label="ap-sdk home">
+      {/* Pure-black monochrome mark — invert it in dark mode so it stays visible. */}
+      <Image
+        src="/ap-sdk.svg"
+        alt="ap-sdk"
+        width={36}
+        height={36}
+        priority
+        unoptimized
+        className="size-9 dark:invert"
+      />
     </Link>
   );
 }

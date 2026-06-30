@@ -4,7 +4,7 @@ import { ComponentCredits } from "@/components/component-credits";
 const links = [
   { label: "Docs", href: "/docs" },
   { label: "Harnesses", href: "/docs/harnesses" },
-  { label: "Quick start", href: "/docs/quickstart" },
+  { label: "Changelog", href: "/docs/changelog" },
   { label: "GitHub", href: "https://github.com/jal-co/agent-plugin-sdk" },
 ];
 

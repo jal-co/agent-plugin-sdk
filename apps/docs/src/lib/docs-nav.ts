@@ -16,19 +16,27 @@ function nodeName(name: ReactNode): string {
 }
 
 /**
- * Flatten the Fumadocs page tree into plain, serializable nav groups so the
- * (client) sidebar stays in sync with content without importing server code.
- * Loose top-level pages become one leading group; folders become their own.
+ * Build sectioned, serializable nav groups from the Fumadocs page tree so the
+ * (client) sidebar stays in sync with content. `---Label---` separators in
+ * meta.json become section headings; pages fall under the preceding section.
  */
 export function getDocsNav(): DocsNavGroup[] {
   const tree = source.getPageTree();
   const groups: DocsNavGroup[] = [];
-  const loose: DocsNavItem[] = [];
+  let current: DocsNavGroup = { items: [] };
+
+  const flush = () => {
+    if (current.items.length) groups.push(current);
+  };
 
   for (const node of tree.children) {
-    if (node.type === "page") {
-      loose.push({ title: nodeName(node.name), url: node.url });
+    if (node.type === "separator") {
+      flush();
+      current = { title: nodeName(node.name), items: [] };
+    } else if (node.type === "page") {
+      current.items.push({ title: nodeName(node.name), url: node.url });
     } else if (node.type === "folder") {
+      flush();
       const items: DocsNavItem[] = [];
       if (node.index) {
         items.push({ title: nodeName(node.index.name), url: node.index.url });
@@ -39,9 +47,17 @@ export function getDocsNav(): DocsNavGroup[] {
         }
       }
       if (items.length) groups.push({ title: nodeName(node.name), items });
+      current = { items: [] };
     }
   }
+  flush();
 
-  if (loose.length) groups.unshift({ items: loose });
+  // The changelog is a standalone route (not MDX content), so append it to the
+  // last section by hand.
+  const last = groups.at(-1);
+  const changelog: DocsNavItem = { title: "Changelog", url: "/docs/changelog" };
+  if (last) last.items.push(changelog);
+  else groups.push({ items: [changelog] });
+
   return groups;
 }

@@ -9,8 +9,8 @@ export default function Layout({ children }: LayoutProps<"/docs">) {
   return (
     <div className="flex min-h-screen flex-col">
       <SiteNavbar variant="docs" />
-      <div className="mx-auto flex w-full max-w-[1400px] flex-1 pt-16">
-        <aside className="hidden w-64 shrink-0 md:block">
+      <div className="mx-auto flex w-full max-w-[1400px] flex-1 pt-24">
+        <aside className="hidden w-64 shrink-0 pl-4 md:block">
           <DocsSidebar groups={nav} />
         </aside>
         <main className="min-w-0 flex-1">
