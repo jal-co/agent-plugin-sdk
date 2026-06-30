@@ -16,7 +16,8 @@
       "!build",
       "!.source",
       "!brand",
-      "!public"
+      "!public",
+      "!**/*.svg"
     ]
   },
   "css": {
