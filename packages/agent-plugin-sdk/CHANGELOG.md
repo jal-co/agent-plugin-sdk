@@ -1,9 +1,6 @@
----
-packages:
-  "@jalco/ap-sdk": minor
----
+## @jalco/ap-sdk@0.2.0
 
-## Install plugins straight from GitHub
+### Install plugins straight from GitHub
 
 `ap-sdk install` and `ap-sdk check` now accept a GitHub source — `owner/repo`,
 `github:owner/repo`, or a github.com URL, with an optional `#ref` for a branch,
