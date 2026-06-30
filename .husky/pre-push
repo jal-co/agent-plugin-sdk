@@ -5,6 +5,10 @@
 #
 # Format: <type>/<description>
 
+# Skip in CI — automated release pushes (e.g. Tegami's tegami/version-packages
+# branch) are created by tooling, not humans.
+[ -n "$CI" ] && exit 0
+
 branch=$(git branch --show-current)
 
 # Allow main/master/develop

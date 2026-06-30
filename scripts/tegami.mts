@@ -18,6 +18,8 @@ const release = tegami({
       repo: "jal-co/agent-plugin-sdk",
       versionPr: {
         base: "main",
+        // Conventional title so the squashed merge commit passes commit-check.
+        create: () => ({ title: "chore(release): version packages" }),
       },
     }),
   ],

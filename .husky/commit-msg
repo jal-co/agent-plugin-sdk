@@ -6,6 +6,10 @@
 # Format: <type>(<scope>)(!): <description>
 # Types: feat, fix, docs, style, refactor, perf, test, chore, ci, build, revert
 
+# Skip in CI — automated release commits (e.g. Tegami's version commit) manage
+# their own messages; PR commits are validated by the commit-check Action.
+[ -n "$CI" ] && exit 0
+
 commit_msg=$(cat "$1")
 
 # Allow merge / revert / fixup commits

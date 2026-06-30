@@ -28,6 +28,12 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      # Commit/push the version PR as the bot so commit-check ignores it.
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
       # Tegami publishes whatever is on disk — build the SDK first.
       - name: Build
         run: pnpm turbo build --filter=@jalco/ap-sdk
