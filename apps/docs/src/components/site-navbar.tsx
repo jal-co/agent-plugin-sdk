@@ -45,7 +45,11 @@ const LINKS = [
 
 function Logo() {
   return (
-    <Link href="/" className="flex items-center" aria-label="ap-sdk home">
+    <Link
+      href="/"
+      className="group relative flex items-center"
+      aria-label="ap-sdk home"
+    >
       {/* Pure-black monochrome mark — invert it in dark mode so it stays visible. */}
       <Image
         src="/ap-sdk.svg"
@@ -54,8 +58,16 @@ function Logo() {
         height={36}
         priority
         unoptimized
-        className="size-9 dark:invert"
+        className="size-9 transition-opacity duration-200 group-hover:opacity-0 dark:invert"
       />
+      {/* On hover the mark dissolves into a terminal-style wordmark. */}
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-y-0 left-0 flex items-center whitespace-nowrap font-mono text-sm font-medium text-foreground opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+      >
+        ap-sdk
+        <span className="ml-1 inline-block h-4 w-[7px] animate-pulse bg-foreground" />
+      </span>
     </Link>
   );
 }

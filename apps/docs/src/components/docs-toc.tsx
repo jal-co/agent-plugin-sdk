@@ -9,19 +9,19 @@ import {
 import { useRef } from "react";
 import { cn } from "@/lib/utils";
 
-/** Right-rail table of contents with active-anchor tracking (scrollspy). */
+/** Table of contents with active-anchor tracking (scrollspy). */
 export function DocsToc({ items }: { items: TOCItemType[] }) {
   const viewRef = useRef<HTMLDivElement>(null);
 
   if (!items.length) return null;
 
   return (
-    <aside className="sticky top-24 hidden max-h-[calc(100vh-7rem)] shrink-0 xl:block">
+    <div>
       <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
         On this page
       </p>
       <AnchorProvider toc={items}>
-        <div ref={viewRef} className="max-h-[calc(100vh-10rem)] overflow-auto">
+        <div ref={viewRef} className="max-h-[60vh] overflow-auto">
           <ScrollProvider containerRef={viewRef}>
             <div className="flex flex-col border-l border-border/50">
               {items.map((item) => (
@@ -42,6 +42,6 @@ export function DocsToc({ items }: { items: TOCItemType[] }) {
           </ScrollProvider>
         </div>
       </AnchorProvider>
-    </aside>
+    </div>
   );
 }
