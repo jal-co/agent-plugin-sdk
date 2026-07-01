@@ -14,6 +14,20 @@ Turn a Claude Code plugin into one `definePlugin` that loads its files from disk
 and compiles to every harness. **Keep the plugin's files where they are** — the
 definition points at them with `readText` / `readDir`; never inline large bodies.
 
+## 0. Try the generator first
+
+Most of this is mechanical, so start with the built-in command — it auto-detects
+the layout and writes a `plugin.ts` that loads the files:
+
+```bash
+npx ap-sdk port ./the-plugin --dry-run   # preview
+npx ap-sdk port ./the-plugin             # write ./the-plugin/plugin.ts
+```
+
+Then **review** the output: fill in any `TODO`s, tighten descriptions, and use
+the mapping below to fix anything the generator couldn't infer. Fall back to the
+manual steps only when porting a layout the command doesn't recognize.
+
 ## 1. Inspect the plugin
 
 Map the tree before writing code:

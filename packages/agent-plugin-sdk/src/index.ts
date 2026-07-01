@@ -6,7 +6,14 @@ export {
   defineHook,
   defineHarness,
 } from "./define.js";
-export { readText, readTextFrom, readDir } from "./util/read.js";
+export {
+  readText,
+  readTextFrom,
+  readBody,
+  readBodyFrom,
+  stripFrontmatter,
+  readDir,
+} from "./util/read.js";
 export { build } from "./build.js";
 export type { BuildOptions, HarnessBuild } from "./build.js";
 export { loadPluginTools } from "./load-tools.js";

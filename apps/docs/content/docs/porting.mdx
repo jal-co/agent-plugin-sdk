@@ -9,6 +9,31 @@ Already have a Claude Code plugin — a `.claude-plugin/`, `agents/`, `commands/
 Windsurf, Pi, and OpenCode. You keep your files on disk; the plugin definition
 just points at them.
 
+## The fast path: `ap-sdk port`
+
+Don't write it by hand — point the CLI at your existing plugin and it generates a
+`plugin.ts` that **loads your files** (never inlines). It auto-detects the source
+layout (Claude Code, Codex, Gemini, Copilot, Cursor, Windsurf, OpenCode, Pi, or a
+generic `skills/` + `commands/` + `agents/` tree):
+
+```bash
+npx ap-sdk port ./my-plugin            # writes ./my-plugin/plugin.ts
+npx ap-sdk port ./my-plugin --dry-run  # preview it first
+```
+
+It maps the manifest, instruction file, `**/SKILL.md` skills, commands, agents
+(with their `model` and extra frontmatter), and hooks (native event names →
+portable ones), and ships companion directories with `readDir`. Then:
+
+```bash compact
+npx ap-sdk check plugin.ts   # validate
+npx ap-sdk build plugin.ts   # emit every harness
+```
+
+Review the result and fill in anything the generator flagged with a `TODO`. The
+rest of this page explains the mapping it applies, for when you want to tweak by
+hand.
+
 ## The mapping
 
 | Claude Code | ap-sdk |

@@ -11,6 +11,7 @@ import { listTools, callTool, contentToText } from "./runtime/tool.js";
 import { formatWarning } from "./warnings.js";
 import { writeTree } from "./util/fs.js";
 import { fetchGithubPlugin, isGithubSpec } from "./github.js";
+import { portPlugin } from "./port.js";
 import { DEFAULT_PLUGIN_FILES, locatePlugin } from "./plugin-files.js";
 import { PluginValidationError, validatePlugin } from "./validate.js";
 import {
@@ -27,6 +28,7 @@ Usage:
   ap-sdk check   [plugin]             Validate a plugin definition
   ap-sdk tools   [plugin] [options]   List the plugin's tools, or invoke one locally
   ap-sdk add-harness <id> [options]   Scaffold a new target harness module
+  ap-sdk port    [dir] [options]      Generate a portable plugin.ts from an existing plugin
 
 Arguments:
   plugin   A local plugin module (default: ./plugin.ts, ./plugin.js,
@@ -59,6 +61,8 @@ Examples:
   ap-sdk install owner/repo
   ap-sdk install github:owner/repo#main -t claude
   ap-sdk check https://github.com/owner/repo --path examples/git-helper
+  ap-sdk port ./my-claude-plugin
+  ap-sdk port ./my-plugin --dry-run
 `;
 
 interface Args {
@@ -220,6 +224,13 @@ async function main(): Promise<void> {
   // so handle it before we go looking for one.
   if (args.command === "add-harness") {
     runAddHarness(args);
+    return;
+  }
+
+  // `port` reads an existing plugin directory and writes a plugin.ts; it needs
+  // no plugin definition of its own.
+  if (args.command === "port") {
+    runPort(args);
     return;
   }
 
@@ -486,6 +497,51 @@ function runAddHarness(args: Args): void {
   console.log(`    2. Import the file so it self-registers, e.g. in your plugin:`);
   console.log(dim(`         import "./${id}.js";`));
   console.log(`    3. Build/install as usual: ${dim(`ap-sdk build -t ${id}`)}\n`);
+}
+
+/**
+ * Read an existing plugin/config directory (any harness's native layout) and
+ * write a portable `plugin.ts` that loads its files. `--dry-run` prints it.
+ */
+function runPort(args: Args): void {
+  const dir = args.plugin
+    ? resolve(process.cwd(), args.plugin)
+    : process.cwd();
+  if (!existsSync(dir)) fail(`Directory not found: ${dir}`);
+
+  const result = portPlugin(dir);
+  const c = result.counts;
+  const summary = [
+    c.instructions ? "instructions" : null,
+    `${c.skills} skill(s)`,
+    `${c.subagents} subagent(s)`,
+    `${c.commands} command(s)`,
+    `${c.hooks} hook(s)`,
+    `${c.companionDirs} companion dir(s)`,
+  ]
+    .filter(Boolean)
+    .join(", ");
+
+  if (args.dryRun) {
+    console.log(`\n  ${tick()} Detected ${bold(result.detected)} — ${dim(summary)}\n`);
+    console.log(result.code);
+    return;
+  }
+
+  const outName = args.out ?? "plugin.ts";
+  const outPath = resolve(dir, outName);
+  if (existsSync(outPath)) {
+    fail(
+      `Refusing to overwrite ${outPath}. Pass --out <name> or --dry-run to preview.`,
+    );
+  }
+  writeFileSync(outPath, result.code);
+
+  console.log(`\n  ${tick()} Ported ${bold(result.detected)} → ${bold(outPath)}`);
+  console.log(`      ${dim(summary)}\n`);
+  console.log(`  ${bold("Next")}`);
+  console.log(`    ${dim(`ap-sdk check ${outName}`)}   validate the port`);
+  console.log(`    ${dim(`ap-sdk build ${outName}`)}   emit every harness\n`);
 }
 
 const bold = (s: string) => `\x1b[1m${s}\x1b[0m`;

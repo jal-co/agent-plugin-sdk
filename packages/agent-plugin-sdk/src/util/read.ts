@@ -47,6 +47,30 @@ export function readTextFrom(base: string): (path: string) => string {
 }
 
 /**
+ * Read a file's markdown **body**, stripping a leading YAML frontmatter block.
+ * Handy for loading a skill/agent/command body straight from its native
+ * `frontmatter + body` file without re-emitting the frontmatter:
+ *
+ * ```ts
+ * defineSkill({ name, description, instructions: readBody("./skills/x/SKILL.md", import.meta.url) })
+ * ```
+ */
+export function readBody(path: string, base?: string): string {
+  return stripFrontmatter(readText(path, base));
+}
+
+/** Bind a base for repeated {@link readBody} calls. */
+export function readBodyFrom(base: string): (path: string) => string {
+  return (path: string) => readBody(path, base);
+}
+
+/** Remove a leading `---\n…\n---` YAML frontmatter block, if present. */
+export function stripFrontmatter(text: string): string {
+  const m = text.match(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/);
+  return m ? text.slice(m[0].length).replace(/^\s+/, "") : text;
+}
+
+/**
  * Recursively read a directory into companion {@link PluginFile}s so a plugin
  * can ship a whole `src/` folder (hook scripts, reference docs, JSON). Paths are
  * relative to `dir`, optionally under `prefix`, and the executable bit is
