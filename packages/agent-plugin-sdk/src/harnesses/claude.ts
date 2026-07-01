@@ -1,7 +1,7 @@
 import { homedir } from "node:os";
 import { join } from "node:path";
 import type { OutputFile, Plugin } from "../types.js";
-import { compact, mapValues, renderFrontmatterDoc } from "../util/frontmatter.js";
+import { compact, mapValues, mergeFrontmatter, renderFrontmatterDoc } from "../util/frontmatter.js";
 import type { EmitContext, Harness, InstallScope } from "./types.js";
 import {
   emitCommandFile,
@@ -119,7 +119,7 @@ export const claude: Harness = {
       });
       files.push({
         path: `agents/${agent.name}.md`,
-        content: renderFrontmatterDoc(frontmatter, agent.prompt),
+        content: renderFrontmatterDoc(mergeFrontmatter(frontmatter, agent.frontmatter), agent.prompt),
       });
     }
 

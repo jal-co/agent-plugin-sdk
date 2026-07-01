@@ -59,4 +59,5 @@ export {
   renderFrontmatterDoc,
   compact,
   mapValues,
+  mergeFrontmatter,
 } from "./util/frontmatter.js";

@@ -68,6 +68,13 @@ export interface Skill {
   license?: string;
   /** Free-form metadata map, emitted where the harness supports it (OpenCode, Pi). */
   metadata?: Record<string, string>;
+  /**
+   * Escape hatch for extra native frontmatter fields the SDK doesn't model
+   * (e.g. `effort`, or a nested `stage:` block). Merged into every harness's
+   * generated `SKILL.md` frontmatter; the SDK's own fields win on a key clash.
+   * Harnesses that don't recognize a key simply ignore it.
+   */
+  frontmatter?: Record<string, unknown>;
   /** Extra files bundled in the skill directory and referenced from the body. */
   resources?: SkillResource[];
 }
@@ -317,6 +324,13 @@ export interface Subagent {
   prompt: string;
   /** Tools the agent may use, e.g. `["Read", "Grep"]`. Emitted where supported (Claude). */
   tools?: string[];
+  /**
+   * Escape hatch for extra native frontmatter fields the SDK doesn't model
+   * (e.g. `effort`, or a nested `stage:` block). Merged into the agent
+   * frontmatter on YAML-frontmatter harnesses (Claude, OpenCode, Copilot,
+   * Gemini); the SDK's own fields win on a key clash. Codex (TOML) ignores it.
+   */
+  frontmatter?: Record<string, unknown>;
   /**
    * Per-harness overrides (model, mode). Omit to let the agent inherit the
    * session model. See {@link SubagentHarnessOptions}.

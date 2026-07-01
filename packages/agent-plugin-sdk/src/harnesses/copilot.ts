@@ -1,7 +1,7 @@
 import { homedir } from "node:os";
 import { join } from "node:path";
 import type { OutputFile, Plugin } from "../types.js";
-import { compact, mapValues, renderFrontmatterDoc } from "../util/frontmatter.js";
+import { compact, mapValues, mergeFrontmatter, renderFrontmatterDoc } from "../util/frontmatter.js";
 import type { EmitContext, Harness, InstallScope } from "./types.js";
 import { emitContextFile, emitSkillDir, json } from "./shared.js";
 import { toCopilotEntry } from "./mcp.js";
@@ -85,7 +85,7 @@ export const copilot: Harness = {
       });
       files.push({
         path: `.github/agents/${agent.name}.agent.md`,
-        content: renderFrontmatterDoc(frontmatter, agent.prompt),
+        content: renderFrontmatterDoc(mergeFrontmatter(frontmatter, agent.frontmatter), agent.prompt),
       });
     }
 

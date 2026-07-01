@@ -32,6 +32,23 @@ export function mapValues<T, U>(
 }
 
 /** Drop keys whose value is `undefined`/`null`/empty so frontmatter stays clean. */
+/**
+ * Merge escape-hatch frontmatter into a harness-built frontmatter object. The
+ * base (the SDK's known fields) wins on a key clash — passthrough only *adds*
+ * fields the SDK doesn't model, preserving key order.
+ */
+export function mergeFrontmatter(
+  base: Record<string, unknown>,
+  extra?: Record<string, unknown>,
+): Record<string, unknown> {
+  if (!extra) return base;
+  const merged = { ...base };
+  for (const [key, value] of Object.entries(extra)) {
+    if (!(key in merged)) merged[key] = value;
+  }
+  return merged;
+}
+
 export function compact<T extends Record<string, unknown>>(obj: T): Partial<T> {
   const out: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(obj)) {

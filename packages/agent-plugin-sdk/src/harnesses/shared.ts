@@ -1,5 +1,5 @@
 import type { OutputFile, Skill } from "../types.js";
-import { renderFrontmatterDoc } from "../util/frontmatter.js";
+import { mergeFrontmatter, renderFrontmatterDoc } from "../util/frontmatter.js";
 
 /**
  * Emit a skill directory: the `SKILL.md` (with the harness-specific frontmatter
@@ -18,7 +18,10 @@ export function emitSkillDir(
   const files: OutputFile[] = [
     {
       path: `${base}/SKILL.md`,
-      content: renderFrontmatterDoc(frontmatter, skill.instructions),
+      content: renderFrontmatterDoc(
+        mergeFrontmatter(frontmatter, skill.frontmatter),
+        skill.instructions,
+      ),
     },
   ];
   for (const res of skill.resources ?? []) {
