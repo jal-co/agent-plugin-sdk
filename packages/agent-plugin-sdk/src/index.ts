@@ -6,6 +6,7 @@ export {
   defineHook,
   defineHarness,
 } from "./define.js";
+export { readText, readTextFrom } from "./util/read.js";
 export { build } from "./build.js";
 export type { BuildOptions, HarnessBuild } from "./build.js";
 export { loadPluginTools } from "./load-tools.js";

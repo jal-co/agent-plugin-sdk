@@ -14,6 +14,11 @@ const HOOK_EVENTS: HookEvent[] = [
   "stop",
   "user-prompt-submit",
   "session-start",
+  "notification",
+  "permission-request",
+  "subagent-stop",
+  "pre-compact",
+  "session-end",
 ];
 
 /**

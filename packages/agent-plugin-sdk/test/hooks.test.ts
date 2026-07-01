@@ -115,3 +115,40 @@ describe("reproduces plannotator's actual hook files", () => {
     ]);
   });
 });
+
+describe("new portable hook events", () => {
+  const plugin = definePlugin({
+    id: "notif",
+    description: "new events",
+    hooks: [
+      defineHook({ event: "notification", command: "notify.sh" }),
+      defineHook({
+        event: "permission-request",
+        matcher: "ExitPlanMode",
+        command: "review.sh",
+      }),
+    ],
+  });
+  const builds = build(plugin);
+  const at = (id: string) => builds.find((x) => x.harness === id)!;
+
+  it("Claude emits native Notification + PermissionRequest", () => {
+    const cfg = JSON.parse(harness(builds, "claude").get("hooks/hooks.json")!);
+    expect(Object.keys(cfg.hooks).sort()).toEqual([
+      "Notification",
+      "PermissionRequest",
+    ]);
+    expect(cfg.hooks.Notification[0].hooks[0].command).toBe("notify.sh");
+    expect(cfg.hooks.PermissionRequest[0].matcher).toBe("ExitPlanMode");
+  });
+
+  it("Codex warns and drops events it has no native form for", () => {
+    const codex = at("codex");
+    expect(harness(builds, "codex").has("hooks/hooks.json")).toBe(false);
+    const events = codex.warnings
+      .filter((w) => w.type === "unsupported-option" && w.option === "event")
+      .flatMap((w) => ("items" in w ? (w.items ?? []) : []))
+      .sort();
+    expect(events).toEqual(["notification", "permission-request"]);
+  });
+});

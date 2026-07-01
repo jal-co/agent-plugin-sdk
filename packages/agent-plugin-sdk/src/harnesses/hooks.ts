@@ -1,6 +1,15 @@
-import type { Hook, HookCommand, HookEvent } from "../types.js";
+import type { HarnessId, Hook, HookCommand, HookEvent } from "../types.js";
+import type { EmitContext } from "./types.js";
 
-/** Portable → native event-name maps for each harness with declarative hooks. */
+/**
+ * Portable → native event-name maps for each harness with declarative hooks.
+ *
+ * Maps are **partial**: a harness only lists the events it natively supports.
+ * A hook whose event a harness can't represent (and that isn't remapped via the
+ * `harness` override) is skipped with an `unsupported-option` warning rather than
+ * emitted under a guessed native name. Claude Code is the reference and supports
+ * the full portable set.
+ */
 export const HOOK_EVENTS = {
   claude: {
     "pre-tool-use": "PreToolUse",
@@ -8,6 +17,11 @@ export const HOOK_EVENTS = {
     stop: "Stop",
     "user-prompt-submit": "UserPromptSubmit",
     "session-start": "SessionStart",
+    notification: "Notification",
+    "permission-request": "PermissionRequest",
+    "subagent-stop": "SubagentStop",
+    "pre-compact": "PreCompact",
+    "session-end": "SessionEnd",
   },
   codex: {
     "pre-tool-use": "PreToolUse",
@@ -31,22 +45,46 @@ export const HOOK_EVENTS = {
     "user-prompt-submit": "UserPromptSubmit",
     "session-start": "SessionStart",
   },
-} satisfies Record<string, Record<HookEvent, string>>;
+} satisfies Record<string, Partial<Record<HookEvent, string>>>;
 
 export type HookHarness = keyof typeof HOOK_EVENTS;
 
-/** Resolve a hook's native event name + matcher for a harness (honoring overrides). */
+/**
+ * Resolve a hook's native event name + matcher for a harness (honoring
+ * overrides). `event` is `undefined` when the harness has no native form for the
+ * portable event and no `harness` override supplies one.
+ */
 function resolve(
   hook: Hook,
   harness: HookHarness,
-): { event: string; matcher?: string } {
+): { event: string | undefined; matcher?: string } {
   const override = hook.harness?.[harness as keyof typeof hook.harness];
-  const event = override?.event ?? HOOK_EVENTS[harness][hook.event];
+  const event =
+    override?.event ??
+    (HOOK_EVENTS[harness] as Partial<Record<HookEvent, string>>)[hook.event];
   // Use the override's matcher when the key is present (even if `undefined`, which
   // explicitly clears it — e.g. mapping a tool event to Codex's matcher-less Stop).
   const matcher =
     override && "matcher" in override ? override.matcher : hook.matcher;
   return { event, matcher };
+}
+
+/** Warn (once per hook) that a harness has no native form for this event. */
+function warnEvent(
+  ctx: EmitContext | undefined,
+  harness: HarnessId,
+  event: HookEvent,
+): void {
+  ctx?.warn({
+    type: "unsupported-option",
+    harness,
+    feature: "hooks",
+    option: "event",
+    items: [event],
+    details:
+      `${harness} has no native "${event}" hook event — ` +
+      "remap it with the `harness` override or drop it.",
+  });
 }
 
 function bashOf(cmd: HookCommand): string {
@@ -56,16 +94,22 @@ function bashOf(cmd: HookCommand): string {
 /**
  * Build the Claude Code / Codex / Gemini style hook config — events map to an
  * array of `{ matcher?, hooks: [{ type:"command", command, timeout? }] }` groups.
- * Returns `null` when there are no hooks.
+ * Returns `null` when nothing maps. Pass `ctx` to surface an `unsupported-option`
+ * warning for events this harness can't represent.
  */
 export function buildMatcherHooks(
   hooks: Hook[],
   harness: "claude" | "codex" | "gemini",
+  ctx?: EmitContext,
 ): Record<string, unknown> | null {
   if (hooks.length === 0) return null;
   const out: Record<string, Array<Record<string, unknown>>> = {};
   for (const hook of hooks) {
     const { event, matcher } = resolve(hook, harness);
+    if (!event) {
+      warnEvent(ctx, harness, hook.event);
+      continue;
+    }
     const inner: Record<string, unknown> = {
       type: "command",
       command: bashOf(hook.command),
@@ -76,7 +120,7 @@ export function buildMatcherHooks(
     group.hooks = [inner];
     (out[event] ??= []).push(group);
   }
-  return { hooks: out };
+  return Object.keys(out).length > 0 ? { hooks: out } : null;
 }
 
 /**
@@ -85,11 +129,18 @@ export function buildMatcherHooks(
  * matcher wrapper) and inspect `tool_name` themselves; timeouts are in seconds.
  * A portable `matcher` has no slot here, so the caller warns when one is set.
  */
-export function buildCopilotHooks(hooks: Hook[]): Record<string, unknown> | null {
+export function buildCopilotHooks(
+  hooks: Hook[],
+  ctx?: EmitContext,
+): Record<string, unknown> | null {
   if (hooks.length === 0) return null;
   const out: Record<string, Array<Record<string, unknown>>> = {};
   for (const hook of hooks) {
     const { event } = resolve(hook, "copilot");
+    if (!event) {
+      warnEvent(ctx, "copilot", hook.event);
+      continue;
+    }
     const entry: Record<string, unknown> = { type: "command" };
     if (typeof hook.command === "string") {
       entry.command = hook.command;
@@ -100,5 +151,5 @@ export function buildCopilotHooks(hooks: Hook[]): Record<string, unknown> | null
     if (hook.timeout !== undefined) entry.timeout = hook.timeout;
     (out[event] ??= []).push(entry);
   }
-  return { hooks: out };
+  return Object.keys(out).length > 0 ? { hooks: out } : null;
 }

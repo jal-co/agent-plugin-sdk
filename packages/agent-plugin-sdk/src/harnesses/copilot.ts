@@ -122,7 +122,7 @@ export const copilot: Harness = {
         });
       }
     }
-    const hooks = buildCopilotHooks(plugin.hooks ?? []);
+    const hooks = buildCopilotHooks(plugin.hooks ?? [], ctx);
     if (hooks) {
       files.push({
         path: ".github/copilot/hooks.json",

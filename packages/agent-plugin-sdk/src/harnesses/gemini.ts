@@ -150,6 +150,7 @@ export const gemini: Harness = {
         timeout: h.timeout !== undefined ? h.timeout * 1000 : undefined,
       })),
       "gemini",
+      ctx,
     );
     if (hooks) files.push({ path: "hooks/hooks.json", content: json(hooks) });
 

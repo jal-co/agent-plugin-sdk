@@ -2,7 +2,7 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 import type { OutputFile, Plugin } from "../types.js";
 import { compact, mapValues, renderFrontmatterDoc } from "../util/frontmatter.js";
-import type { Harness, InstallScope } from "./types.js";
+import type { EmitContext, Harness, InstallScope } from "./types.js";
 import {
   emitCommandFile,
   emitContextFile,
@@ -42,7 +42,7 @@ export const claude: Harness = {
 
   contextFileName: "CLAUDE.md",
 
-  emit(plugin: Plugin): OutputFile[] {
+  emit(plugin: Plugin, ctx: EmitContext): OutputFile[] {
     const files: OutputFile[] = [];
 
     if (plugin.instructions?.trim()) {
@@ -143,7 +143,7 @@ export const claude: Harness = {
     }
 
     // Hooks: hooks/hooks.json bundled in the plugin, auto-loaded on install.
-    const hooks = buildMatcherHooks(plugin.hooks ?? [], "claude");
+    const hooks = buildMatcherHooks(plugin.hooks ?? [], "claude", ctx);
     if (hooks) files.push({ path: "hooks/hooks.json", content: json(hooks) });
 
     return files;

@@ -158,7 +158,12 @@ export type HookEvent =
   | "post-tool-use"
   | "stop"
   | "user-prompt-submit"
-  | "session-start";
+  | "session-start"
+  | "notification"
+  | "permission-request"
+  | "subagent-stop"
+  | "pre-compact"
+  | "session-end";
 
 /**
  * A command to run for a hook. A bare string runs on every platform; use the

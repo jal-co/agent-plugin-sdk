@@ -145,7 +145,7 @@ export const codex: Harness = {
     // Hooks: Codex reads .codex/hooks.json (project) or ~/.codex/hooks.json, and
     // requires `[features] hooks = true` in config.toml. Not plugin-bundleable, so
     // we emit the file under hooks/ for build plus a note about the feature flag.
-    const hooks = buildMatcherHooks(plugin.hooks ?? [], "codex");
+    const hooks = buildMatcherHooks(plugin.hooks ?? [], "codex", ctx);
     if (hooks) {
       files.push({ path: "hooks/hooks.json", content: json(hooks) });
       files.push({
