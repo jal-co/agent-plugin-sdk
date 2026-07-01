@@ -124,6 +124,13 @@ export interface Command {
    */
   allowedTools?: string[];
   /**
+   * Escape hatch for extra native frontmatter fields the SDK doesn't model.
+   * Merged into the generated command frontmatter on YAML-frontmatter harnesses
+   * (Claude, Codex, OpenCode, Pi, Copilot, Windsurf); the SDK's own fields win
+   * on a key clash. Gemini (TOML) and Cursor (plain markdown) ignore it.
+   */
+  frontmatter?: Record<string, unknown>;
+  /**
    * Per-harness overrides (model). Like {@link Subagent}, the model lives in the
    * harness-namespaced bag because only some harnesses have a per-command model
    * and their ids diverge (Claude `"sonnet"` vs OpenCode `"provider/model"`).
@@ -228,6 +235,13 @@ export interface Hook {
   command: HookCommand;
   /** Timeout in seconds. */
   timeout?: number;
+  /**
+   * Run the hook without blocking the turn (fire-and-forget). Emitted where the
+   * harness natively models it (Claude Code `"async": true`); on harnesses that
+   * don't, it's dropped with a warning and the hook runs synchronously within
+   * its timeout.
+   */
+  async?: boolean;
   /** Optional human note recorded as a comment where the format allows it. */
   comment?: string;
   /**

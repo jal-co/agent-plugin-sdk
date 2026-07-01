@@ -105,6 +105,7 @@ export const claude: Harness = {
           frontmatter,
           rewriteArgsToZeroBased(command.body),
           "commands",
+          command.frontmatter,
         ),
       );
     }

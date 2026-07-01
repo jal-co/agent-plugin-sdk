@@ -116,10 +116,14 @@ export function emitCommandFile(
   frontmatter: Record<string, unknown>,
   body: string,
   dirPrefix: string,
+  passthrough?: Record<string, unknown>,
 ): OutputFile {
   return {
     path: `${dirPrefix}/${name}.md`,
-    content: renderFrontmatterDoc(frontmatter, body),
+    content: renderFrontmatterDoc(
+      mergeFrontmatter(frontmatter, passthrough),
+      body,
+    ),
   };
 }
 

@@ -69,6 +69,27 @@ function resolve(
   return { event, matcher };
 }
 
+/**
+ * Harnesses whose hook format natively models a per-hook async / fire-and-forget
+ * flag. Only Claude Code is confirmed; others degrade to synchronous with a
+ * warning rather than emitting a guessed field.
+ */
+const ASYNC_HOOK_HARNESSES = new Set<HarnessId>(["claude"]);
+
+/** Warn (once per hook) that a harness dropped the `async` flag. */
+function warnAsync(ctx: EmitContext | undefined, harness: HarnessId): void {
+  ctx?.warn({
+    type: "unsupported-option",
+    harness,
+    feature: "hooks",
+    option: "async",
+    items: ["async"],
+    details:
+      `${harness} has no native async hook flag — the hook runs ` +
+      "synchronously within its timeout.",
+  });
+}
+
 /** Warn (once per hook) that a harness has no native form for this event. */
 function warnEvent(
   ctx: EmitContext | undefined,
@@ -115,6 +136,10 @@ export function buildMatcherHooks(
       command: bashOf(hook.command),
     };
     if (hook.timeout !== undefined) inner.timeout = hook.timeout;
+    if (hook.async) {
+      if (ASYNC_HOOK_HARNESSES.has(harness)) inner.async = true;
+      else warnAsync(ctx, harness);
+    }
     const group: Record<string, unknown> = {};
     if (matcher) group.matcher = matcher;
     group.hooks = [inner];
@@ -149,6 +174,7 @@ export function buildCopilotHooks(
       if (hook.command.powershell) entry.windows = hook.command.powershell;
     }
     if (hook.timeout !== undefined) entry.timeout = hook.timeout;
+    if (hook.async) warnAsync(ctx, "copilot");
     (out[event] ??= []).push(entry);
   }
   return Object.keys(out).length > 0 ? { hooks: out } : null;

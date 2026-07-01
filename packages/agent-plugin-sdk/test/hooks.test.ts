@@ -41,6 +41,41 @@ describe("hooks emission across harnesses", () => {
     });
   });
 
+  it("async: Claude emits the native flag; unsupported harnesses warn + omit it", () => {
+    const p = definePlugin({
+      id: "async-hook",
+      description: "fire-and-forget notify",
+      hooks: [
+        defineHook({
+          event: "stop",
+          command: "notify.sh",
+          timeout: 5,
+          async: true,
+        }),
+      ],
+    });
+    const b = build(p);
+    // Claude models it natively.
+    const claude = b.find((x) => x.harness === "claude")!;
+    const cfg = JSON.parse(fileMap(claude.files).get("hooks/hooks.json")!);
+    expect(cfg.hooks.Stop[0].hooks[0]).toEqual({
+      type: "command",
+      command: "notify.sh",
+      timeout: 5,
+      async: true,
+    });
+    expect(claude.warnings.some((w) => w.type === "unsupported-option")).toBe(
+      false,
+    );
+    // Copilot has no confirmed async slot → warn + omit (event still maps).
+    const copilot = b.find((x) => x.harness === "copilot")!;
+    expect(
+      copilot.warnings.some(
+        (w) => w.type === "unsupported-option" && w.option === "async",
+      ),
+    ).toBe(true);
+  });
+
   it("Codex: hooks/hooks.json + a feature-flag README", () => {
     const f = harness(builds, "codex");
     const cfg = JSON.parse(f.get("hooks/hooks.json")!);

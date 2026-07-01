@@ -93,7 +93,13 @@ export const codex: Harness = {
         "argument-hint": command.argumentHint,
       });
       files.push(
-        emitCommandFile(command.name, frontmatter, command.body, "prompts"),
+        emitCommandFile(
+          command.name,
+          frontmatter,
+          command.body,
+          "prompts",
+          command.frontmatter,
+        ),
       );
     }
 

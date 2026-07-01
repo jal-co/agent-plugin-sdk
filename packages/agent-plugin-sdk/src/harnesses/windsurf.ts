@@ -1,7 +1,12 @@
 import { homedir } from "node:os";
 import { join } from "node:path";
 import type { OutputFile, Plugin } from "../types.js";
-import { compact, mapValues, renderFrontmatterDoc } from "../util/frontmatter.js";
+import {
+  compact,
+  mapValues,
+  mergeFrontmatter,
+  renderFrontmatterDoc,
+} from "../util/frontmatter.js";
 import type { Harness, InstallScope } from "./types.js";
 import { emitContextFile, emitSkillDir, json } from "./shared.js";
 import { toWindsurfEntry } from "./mcp.js";
@@ -68,7 +73,10 @@ export const windsurf: Harness = {
       const frontmatter = compact({ description: command.description });
       files.push({
         path: `.windsurf/workflows/${command.name}.md`,
-        content: renderFrontmatterDoc(frontmatter, command.body),
+        content: renderFrontmatterDoc(
+          mergeFrontmatter(frontmatter, command.frontmatter),
+          command.body,
+        ),
       });
     }
 

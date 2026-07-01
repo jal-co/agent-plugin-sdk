@@ -96,7 +96,13 @@ export const opencode: Harness = {
         model: command.harness?.opencode?.model,
       });
       files.push(
-        emitCommandFile(command.name, frontmatter, command.body, "commands"),
+        emitCommandFile(
+          command.name,
+          frontmatter,
+          command.body,
+          "commands",
+          command.frontmatter,
+        ),
       );
     }
 

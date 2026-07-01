@@ -70,7 +70,10 @@ export const copilot: Harness = {
       });
       files.push({
         path: `.github/prompts/${command.name}.prompt.md`,
-        content: renderFrontmatterDoc(frontmatter, command.body),
+        content: renderFrontmatterDoc(
+          mergeFrontmatter(frontmatter, command.frontmatter),
+          command.body,
+        ),
       });
     }
 

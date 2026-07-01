@@ -42,8 +42,8 @@ hand.
 | `CLAUDE.md` | `instructions` |
 | skills (`SKILL.md`) | `defineSkill` (extra frontmatter → `frontmatter`) |
 | `agents/*.md` | `defineSubagent` (`model` → `harness.claude.model`; extra fields → `frontmatter`) |
-| `commands/*.md` | `defineCommand` |
-| `hooks/hooks.json` | `defineHook` (events incl. `notification`, `permission-request`) |
+| `commands/*.md` | `defineCommand` (extra frontmatter → `frontmatter`) |
+| `hooks/hooks.json` | `defineHook` (events incl. `notification`, `permission-request`; `async` preserved) |
 | `hooks/*.sh`, `*.py`, `doctrine/`, `docs/` | `files` (companion files, via `readDir`) |
 
 ## Keep your files on disk
@@ -124,9 +124,9 @@ hooks: [
     timeout: 5,
   }),
   defineHook({
-    event: "permission-request",
-    matcher: "ExitPlanMode",
-    command: "${CLAUDE_PLUGIN_ROOT}/hooks/review.sh",
+    event: "notification",
+    command: "${CLAUDE_PLUGIN_ROOT}/hooks/notify.sh",
+    async: true, // fire-and-forget; Claude runs it without blocking the turn
   }),
 ],
 // Ship the hook scripts + reference docs the instructions point at.
@@ -139,7 +139,9 @@ files: [
 `readDir` preserves the executable bit, so your `.sh`/`.py` hooks stay runnable.
 A harness with no native form for an event (or for hooks at all) drops just that
 piece with a [warning](/docs/harnesses#what-happens-when-a-feature-isnt-supported),
-never a broken file.
+never a broken file. `async` is emitted where the harness models it natively
+(Claude Code) and otherwise dropped with a warning — the hook still runs, just
+synchronously within its timeout.
 
 ## Build and review the gaps
 

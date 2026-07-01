@@ -2,6 +2,7 @@ import { parse } from "yaml";
 import { describe, expect, it } from "vitest";
 import {
   build,
+  defineCommand,
   defineSkill,
   defineSubagent,
   definePlugin,
@@ -40,6 +41,14 @@ describe("frontmatter passthrough", () => {
         frontmatter: { effort: "medium", color: "blue" },
       }),
     ],
+    commands: [
+      defineCommand({
+        name: "run",
+        description: "Run it.",
+        body: "Run $ARGUMENTS.",
+        frontmatter: { effort: "low", category: "ops" },
+      }),
+    ],
   });
   const builds = build(plugin);
 
@@ -57,6 +66,20 @@ describe("frontmatter passthrough", () => {
     expect(fm.name).toBe("triage");
     expect(fm.effort).toBe("medium");
     expect(fm.color).toBe("blue");
+  });
+
+  it("merges extra fields into a command's YAML frontmatter", () => {
+    for (const [id, path] of [
+      ["claude", "commands/run.md"],
+      ["codex", "prompts/run.md"],
+      ["opencode", "commands/run.md"],
+      ["copilot", ".github/prompts/run.prompt.md"],
+      ["windsurf", ".windsurf/workflows/run.md"],
+    ] as const) {
+      const fm = frontmatterOf(harness(builds, id).get(path)!);
+      expect(fm.effort, id).toBe("low");
+      expect(fm.category, id).toBe("ops");
+    }
   });
 
   it("never lets passthrough clobber a known field", () => {

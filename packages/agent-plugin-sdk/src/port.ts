@@ -275,6 +275,19 @@ function parseSkill(file: string) {
 
 function parseCommand(file: string) {
   const { data } = splitFrontmatter(readFileSync(file, "utf8"));
+  const known = new Set([
+    "name",
+    "description",
+    "argument-hint",
+    "argumenthint",
+    "allowed-tools",
+    "allowedtools",
+    "model",
+  ]);
+  const extra: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(data)) {
+    if (!known.has(k.toLowerCase())) extra[k] = v;
+  }
   return {
     name: kebab((data.name as string) ?? basename(file)),
     description: (data.description as string) ?? "Describe the command.",
@@ -282,6 +295,7 @@ function parseCommand(file: string) {
       | string
       | undefined,
     allowedTools: toolList(data["allowed-tools"] ?? data.allowedTools),
+    frontmatter: Object.keys(extra).length ? extra : undefined,
   };
 }
 
@@ -323,6 +337,7 @@ interface PortedHook {
   matcher?: string;
   command: string;
   timeout?: number;
+  async?: boolean;
 }
 
 function readHooks(dir: string): PortedHook[] {
@@ -354,6 +369,7 @@ function readHooks(dir: string): PortedHook[] {
           matcher,
           command,
           timeout: (h.timeout ?? group.timeout) as number | undefined,
+          async: (h.async ?? group.async) === true ? true : undefined,
         });
       }
     }
@@ -438,6 +454,7 @@ function generate(p: GenInput): string {
       L.push(`      description: ${lit(c.description)},`);
       if (c.argumentHint) L.push(`      argumentHint: ${lit(c.argumentHint)},`);
       if (c.allowedTools) L.push(`      allowedTools: ${lit(c.allowedTools)},`);
+      if (c.frontmatter) L.push(`      frontmatter: ${lit(c.frontmatter)},`);
       L.push(`      body: readBody(${lit(c.rel)}),`);
       L.push(`    }),`);
     }
@@ -451,6 +468,7 @@ function generate(p: GenInput): string {
       if (h.matcher) parts.push(`matcher: ${lit(h.matcher)}`);
       parts.push(`command: ${lit(h.command)}`);
       if (h.timeout !== undefined) parts.push(`timeout: ${h.timeout}`);
+      if (h.async) parts.push(`async: true`);
       const note =
         NATIVE_TO_PORTABLE[h.nativeEvent] === undefined
           ? ` // TODO: native "${h.nativeEvent}" had no portable event; defaulted`
