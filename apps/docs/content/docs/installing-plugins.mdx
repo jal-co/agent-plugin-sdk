@@ -12,6 +12,8 @@ the skills, commands, and tools immediately.
 npx ap-sdk install
 ```
 
+Looking for plugins? Browse the [plugin directory](/docs/plugins).
+
 Install reuses the exact same output as `build`, so installed files are
 byte-for-byte identical — it just relocates each feature into the harness's live
 config dir instead of an output folder.
@@ -104,6 +106,51 @@ Use `--path <dir>` when the plugin lives in a subdirectory, and set
 `GITHUB_TOKEN` for private repos or to raise the API rate limit. The plugin's
 `@jalco/ap-sdk` import is resolved to the SDK running the install, so simple
 plugins need no dependency install of their own.
+
+## From npm
+
+Use the `npm:` source form to fetch a published package, run the same
+compatibility check, and install only if it default-exports a valid ap-sdk
+plugin:
+
+```bash compact
+npx ap-sdk install npm:@acme/git-helper
+npx ap-sdk install npm:@acme/git-helper@1.2.3 -t claude
+npx ap-sdk check npm:@acme/git-helper@next
+```
+
+Version pinning uses the suffix after the package name (`npm:name@1.2.3` or a
+dist-tag like `npm:name@next`). Scoped names keep their scope:
+`npm:@scope/name@1.2.3`.
+
+Packages can point at a non-root plugin file with package metadata:
+
+```json title="package.json"
+{
+  "ap-sdk": { "plugin": "./dist/plugin.js" }
+}
+```
+
+If that field is absent, the CLI looks for the usual `plugin.ts`, `plugin.js`,
+or `ap-sdk.config.ts`; use `--path <dir>` for packages that contain the plugin
+inside a subdirectory.
+
+## Uninstalling
+
+Every non-dry-run install records exactly what was written in
+`.ap-sdk/install-manifest.json` for project installs, or
+`~/.ap-sdk/install-manifest.json` for global installs. Remove a recorded plugin
+with:
+
+```bash compact
+npx ap-sdk uninstall git-helper
+npx ap-sdk uninstall git-helper --dry-run
+npx ap-sdk uninstall git-helper --global
+```
+
+Uninstall deletes only recorded files and removes only the plugin's entries from
+shared configs (instruction blocks, MCP servers, hooks). Installs made before
+this manifest existed have no record, so they cannot be auto-removed.
 
 ## Programmatic install
 

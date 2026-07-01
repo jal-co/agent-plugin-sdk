@@ -27,6 +27,8 @@ export { FEATURES, formatWarning } from "./warnings.js";
 export type { Feature, BuildWarning } from "./warnings.js";
 export { installSkills } from "./install.js";
 export type { InstallOptions, InstalledItem } from "./install.js";
+export { uninstallPlugin } from "./uninstall.js";
+export type { UninstallOptions, RemovedItem } from "./uninstall.js";
 export { validatePlugin, PluginValidationError } from "./validate.js";
 export {
   registerHarness,
