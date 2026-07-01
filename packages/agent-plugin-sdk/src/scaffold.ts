@@ -120,6 +120,11 @@ export const ${constName}: Harness = defineHarness({
     return join(root, name);
   },
 
+  // Base dir for the plugin's companion files (\`plugin.files\`).
+  filesInstallDir(scope: InstallScope) {
+    return scope === "global" ? join(homedir(), ".${id}") : ".${id}";
+  },
+
   commandInstallPath(scope: InstallScope, name: string) {
     const root =
       scope === "global"

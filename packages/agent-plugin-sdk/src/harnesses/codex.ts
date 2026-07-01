@@ -171,6 +171,10 @@ export const codex: Harness = {
 
   commandsGlobalOnly: true,
 
+  filesInstallDir(scope: InstallScope) {
+    return scope === "global" ? join(homedir(), ".codex") : ".codex";
+  },
+
   commandInstallPath(_scope: InstallScope, name: string): string {
     // Always the Codex home prompts dir, regardless of requested scope.
     return join(homedir(), ".codex", "prompts", `${name}.md`);

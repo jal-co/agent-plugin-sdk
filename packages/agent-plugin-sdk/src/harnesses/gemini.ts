@@ -165,6 +165,10 @@ export const gemini: Harness = {
     return join(root, name);
   },
 
+  filesInstallDir(scope: InstallScope) {
+    return scope === "global" ? join(homedir(), ".gemini") : ".gemini";
+  },
+
   commandInstallPath(scope: InstallScope, name: string): string {
     const root =
       scope === "global"

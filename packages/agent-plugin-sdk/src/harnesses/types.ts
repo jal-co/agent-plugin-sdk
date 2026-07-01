@@ -64,6 +64,15 @@ export interface Harness {
   skillInstallDir(scope: InstallScope, name: string): string;
 
   /**
+   * Base directory the plugin's companion files (`plugin.files`) install into
+   * for this scope — the local analog of the built plugin root. Each file lands
+   * at `join(<dir>, file.path)`. Return `null`, or omit the method entirely, when
+   * the harness has no sensible home for them (they still ship in the build
+   * tree). Optional so harnesses authored before this existed keep working.
+   */
+  filesInstallDir?(scope: InstallScope): string | null;
+
+  /**
    * Absolute path of the `<name>.md` file a generated command installs to, or
    * `null` if this harness cannot install commands at the requested scope.
    */

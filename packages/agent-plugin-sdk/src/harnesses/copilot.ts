@@ -139,6 +139,10 @@ export const copilot: Harness = {
       : join(".github", "skills", name);
   },
 
+  filesInstallDir(scope: InstallScope) {
+    return scope === "global" ? join(homedir(), ".copilot") : ".github";
+  },
+
   commandInstallPath(scope: InstallScope, name: string): string {
     // Workspace prompt files live in .github/prompts; user prompts live in profile data.
     return scope === "global"

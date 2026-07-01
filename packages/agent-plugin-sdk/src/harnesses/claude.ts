@@ -157,6 +157,10 @@ export const claude: Harness = {
     return join(root, name);
   },
 
+  filesInstallDir(scope: InstallScope) {
+    return scope === "global" ? join(homedir(), ".claude") : ".claude";
+  },
+
   commandInstallPath(scope: InstallScope, name: string): string {
     const root =
       scope === "global"

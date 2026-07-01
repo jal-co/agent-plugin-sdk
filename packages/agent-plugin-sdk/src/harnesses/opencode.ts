@@ -165,6 +165,12 @@ export const opencode: Harness = {
     return join(root, name);
   },
 
+  filesInstallDir(scope: InstallScope) {
+    return scope === "global"
+      ? join(homedir(), ".config", "opencode")
+      : ".opencode";
+  },
+
   commandInstallPath(scope: InstallScope, name: string): string {
     const root =
       scope === "global"

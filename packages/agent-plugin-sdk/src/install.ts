@@ -1,6 +1,12 @@
 import { join, dirname, basename } from "node:path";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import type { HarnessId, McpServer, OutputFile, Plugin } from "./types.js";
+import type {
+  HarnessId,
+  McpServer,
+  OutputFile,
+  Plugin,
+  PluginFile,
+} from "./types.js";
 import { allHarnessIds, getHarness } from "./harnesses/index.js";
 import type { Harness, InstallScope } from "./harnesses/types.js";
 import { emitFor } from "./emit.js";
@@ -16,10 +22,10 @@ export interface InstallOptions {
   dryRun?: boolean;
 }
 
-/** One installed feature (skill, command, MCP, context, subagent, or hooks). */
+/** One installed feature (skill, command, MCP, context, subagent, hooks, or file). */
 export interface InstalledItem {
   harness: HarnessId;
-  kind: "skill" | "command" | "mcp" | "context" | "subagent" | "hook";
+  kind: "skill" | "command" | "mcp" | "context" | "subagent" | "hook" | "file";
   name: string;
   /** Absolute paths written (or that would be written, in dry-run). */
   files: string[];
@@ -81,6 +87,10 @@ export function installSkills(
 
     if ((plugin.hooks ?? []).length > 0) {
       results.push(installHooks(harness, plugin.hooks!, scope, options.dryRun));
+    }
+
+    if ((plugin.files ?? []).length > 0) {
+      results.push(installFiles(harness, plugin.files!, scope, options.dryRun));
     }
 
     if (plugin.instructions?.trim()) {
@@ -284,6 +294,43 @@ function mergeJsonKey(
   root[key] = { ...existing, ...entries };
   mkdirSync(dirname(file), { recursive: true });
   writeFileSync(file, JSON.stringify(root, null, 2) + "\n");
+}
+
+/**
+ * Install the plugin's companion files under the harness's `filesInstallDir`
+ * (the local analog of the build plugin root), preserving each file's subpath
+ * and executable bit. Skips with a note when the harness has no such location.
+ */
+function installFiles(
+  harness: Harness,
+  files: PluginFile[],
+  scope: InstallScope,
+  dryRun: boolean | undefined,
+): InstalledItem {
+  const base = harness.filesInstallDir?.(scope) ?? null;
+  const name = `${files.length} file(s)`;
+  if (!base) {
+    return {
+      harness: harness.id,
+      kind: "file",
+      name,
+      files: [],
+      note: `${harness.displayName} has no install location for companion files — they still ship in the build tree.`,
+    };
+  }
+  const written: string[] = [];
+  for (const file of files) {
+    const abs = join(base, file.path);
+    if (!dryRun) {
+      writeOutputFile(abs, {
+        path: abs,
+        content: file.content,
+        executable: file.executable,
+      });
+    }
+    written.push(abs);
+  }
+  return { harness: harness.id, kind: "file", name, files: written };
 }
 
 function installSkill(

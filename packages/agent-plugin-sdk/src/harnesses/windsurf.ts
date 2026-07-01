@@ -100,6 +100,10 @@ export const windsurf: Harness = {
       : join(".windsurf", "skills", name);
   },
 
+  filesInstallDir(scope: InstallScope) {
+    return scope === "global" ? join(homedir(), ".windsurf") : ".windsurf";
+  },
+
   commandInstallPath(scope: InstallScope, name: string): string {
     return scope === "global"
       ? join(homedir(), ".codeium", "windsurf", "global_workflows", `${name}.md`)

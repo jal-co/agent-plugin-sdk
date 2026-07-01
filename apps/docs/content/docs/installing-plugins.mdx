@@ -52,6 +52,8 @@ Install projects every feature in the plugin into each harness's native layout:
 - **MCP servers** → merged into the harness's MCP config
 - **Hooks** → merged into the harness's hook config
 - **Instructions** → merged into the harness's context file (`CLAUDE.md`, …)
+- **Companion files** (`plugin.files`) → relocated under the harness's config
+  root (e.g. `.claude/`), preserving each file's subpath and executable bit
 
 Merges are **idempotent and non-destructive**. MCP servers, hooks, and
 instructions are merged into existing JSON/markdown under a delimited block

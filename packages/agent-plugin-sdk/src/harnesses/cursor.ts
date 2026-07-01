@@ -96,6 +96,10 @@ export const cursor: Harness = {
       : join(".cursor", "skills", name);
   },
 
+  filesInstallDir(scope: InstallScope) {
+    return scope === "global" ? join(homedir(), ".cursor") : ".cursor";
+  },
+
   commandInstallPath(scope: InstallScope, name: string): string {
     return scope === "global"
       ? join(homedir(), ".cursor", "commands", `${name}.md`)
