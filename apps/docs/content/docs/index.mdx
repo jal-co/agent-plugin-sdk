@@ -49,7 +49,7 @@ Harnesses share a common feature set, but each also diverges. The SDK borrows
 [ai-sdk](https://ai-sdk.dev)'s approach for exactly this problem:
 
 - **A capability map.** Every harness declares which portable features it
-  `supports` — the single source of truth that [`supportMatrix()`](/docs/concepts/support-matrix)
+  `supports` — the single source of truth that the [support matrix](/docs/harnesses)
   reads straight off.
 - **Structured warnings, never silent drops.** When a target can't represent a
   feature, `build` returns a `BuildWarning` and keeps going — nothing wrong is

@@ -1,0 +1,214 @@
+---
+title: Authoring a harness
+description: Add support for a new coding agent — its capability map, native emit, and install paths.
+---
+
+A **harness** is one target agent (Claude Code, Cursor, …). Each is a self-contained
+module that owns _all_ knowledge about that agent: which portable features it can
+represent, how to translate them into native files, and where those files install.
+It's the analog of authoring an [ai-sdk](https://ai-sdk.dev) provider — once
+registered, your harness flows through `build`, `install`, the support matrix, and
+the CLI exactly like a built-in.
+
+Author one from the `@jalco/ap-sdk/harness` entrypoint. You never reach into SDK
+internals; the contract and the same emit helpers the built-ins use live there.
+
+## 1. Scaffold a starter
+
+The CLI stamps out a typed, **working** harness — a SKILL.md-based starter that
+already supports instructions, skills, and commands — so you edit a real harness
+instead of a blank file:
+
+```bash
+npx ap-sdk add-harness acme --name "Acme Agent"
+```
+
+This writes `acme.ts`. The id must be kebab-case; it becomes `Harness.id` and the
+default install dir `.acme/`.
+
+## 2. The `Harness` contract
+
+`defineHarness` is a typed identity helper — it gives you autocomplete and
+checks the shape without importing the type by hand:
+
+```ts title="acme.ts"
+import {
+  defineHarness,
+  registerHarness,
+  emitSkillDir,
+  emitCommandFile,
+  emitContextFile,
+  compact,
+  type Harness,
+  type InstallScope,
+} from "@jalco/ap-sdk/harness";
+
+export const acme: Harness = defineHarness({
+  specificationVersion: "v1",
+  id: "acme",
+  displayName: "Acme Agent",
+  contextFileName: "AGENTS.md",
+  supports: {
+    /* … capability map … */
+  },
+  emit(plugin) {
+    /* … translate to native files … */
+  },
+  /* … install paths … */
+});
+
+registerHarness(acme);
+```
+
+The pieces, in the order you'll fill them in:
+
+## 3. Declare capabilities (`supports`)
+
+The capability map is the **single source of truth** for what your harness can do.
+The driver reads it to decide emit-or-warn, and the docs/tests read it as the
+[support matrix](/docs/harnesses). The seven portable features:
+
+| Feature | Comes from | 
+| --- | --- |
+| `instructions` | `plugin.instructions` — the always-on context file |
+| `skills` | `defineSkill` |
+| `commands` | `defineCommand` |
+| `subagents` | `defineSubagent` |
+| `hooks` | `defineHook` |
+| `mcpServers` | `plugin.mcpServers` |
+| `tools` | `defineTool` (the runtime entrypoint) |
+
+```ts
+supports: {
+  instructions: true,
+  skills: true,
+  commands: true,
+  subagents: false,
+  hooks: false,
+  mcpServers: false,
+  tools: false,
+},
+```
+
+Anything left `false` **degrades to a structured build warning, never a broken
+artifact** — the driver strips that feature centrally before `emit` runs. Use
+`unsupportedDetails` to tell authors what to do instead:
+
+```ts
+unsupportedDetails: {
+  hooks: "Acme has no declarative hooks — wire them as a shell script instead.",
+},
+```
+
+## 4. Translate features (`emit`)
+
+`emit` receives a plugin **already projected down to the features you support**,
+so it's a _pure translator_ — it never decides what it can't do. Return native
+files with paths relative to your harness's output root (`<outDir>/acme/`), using
+the shared emit helpers:
+
+| Helper | Emits |
+| --- | --- |
+| `emitContextFile(id, text, fileName)` | the instruction file (a managed block) |
+| `emitSkillDir(skill, frontmatter, dir)` | a `skills/<name>/SKILL.md` subtree |
+| `emitCommandFile(name, frontmatter, body, dir)` | one command/prompt file |
+| `compact(obj)` | drops `undefined` keys from frontmatter |
+
+```ts title="emit — a pure translator"
+emit(plugin) {
+  const files = [];
+
+  if (plugin.instructions?.trim()) {
+    files.push(emitContextFile(plugin.id, plugin.instructions, this.contextFileName));
+  }
+
+  for (const skill of plugin.skills ?? []) {
+    // Emit only the frontmatter fields Acme actually recognizes.
+    const frontmatter = compact({ name: skill.name, description: skill.description });
+    files.push(...emitSkillDir(skill, frontmatter, "skills"));
+  }
+
+  for (const command of plugin.commands ?? []) {
+    const frontmatter = compact({ description: command.description });
+    files.push(emitCommandFile(command.name, frontmatter, command.body, "commands"));
+  }
+
+  return files;
+}
+```
+
+For the finer case — a feature _is_ emitted, but one field can't be represented
+(say a per-command model on a harness whose prompts have no model field) — push a
+warning instead of dropping silently:
+
+```ts
+emit(plugin, ctx) {
+  if (command.model) {
+    ctx.warn({ type: "unsupported-option", harness: this.id, detail: "Acme prompts have no model field." });
+  }
+  // …
+}
+```
+
+## 5. Install paths
+
+`install` relocates each emitted feature into the agent's real directories. Each
+method returns an **absolute path** (project- or `~`-global scope), or `null` when
+the harness can't install that feature — in which case `install` reports a clean
+skip with your note instead of writing a broken file.
+
+| Method | Returns |
+| --- | --- |
+| `skillInstallDir(scope, name)` | dir a skill copies into |
+| `commandInstallPath(scope, name)` | the command file path, or `null` |
+| `contextInstallPath(scope)` | the instruction file the context merges into |
+| `subagentInstallPath(scope, name)` | the subagent file, or `null` (+ `subagentNote`) |
+| `mcpInstall(scope)` | `{ path, mergeKey, convert }`, or `null` (+ `mcpInstallNote`) |
+| `buildHookConfig(hooks)` / `hookInstall(scope)` | hook config + target, or `null` (+ `hookInstallNote`) |
+
+```ts
+skillInstallDir(scope: InstallScope, name: string) {
+  const root = scope === "global"
+    ? join(homedir(), ".acme", "skills")
+    : join(".acme", "skills");
+  return join(root, name);
+},
+```
+
+Set `commandsGlobalOnly: true` if commands can only live in the home dir (like
+Codex prompts) — `install` then warns when a project install is requested.
+
+## 6. Register and activate
+
+`registerHarness` adds your harness to the live registry (or overrides a
+built-in). It throws on a mismatched `specificationVersion`, the way ai-sdk gates
+a provider. **Import the file once** — from your plugin, or anywhere on the path
+the CLI loads — so registration runs before `build`/`install`:
+
+```ts title="plugin.ts"
+import "./acme"; // registers the harness on import
+```
+
+## 7. Verify
+
+Your harness now flows through everything:
+
+```bash compact
+npx ap-sdk build   -t acme        # emit the native tree under .aps-out/acme/
+npx ap-sdk install -t acme --dry-run   # preview the install plan
+```
+
+It also shows up automatically in the live support matrix (which reads
+`supports` straight off the registry) and in `supportMatrix()`. Add tests that
+assert the emitted paths and frontmatter, the way the built-ins do.
+
+## Ship it
+
+Keep the harness in your own project (import it from your plugin), or publish it
+as a standalone package that calls `registerHarness` on import — no fork required.
+Consumers add it the same way: install the package and import it before building.
+
+<Cards>
+  <Card title="Supported harnesses" href="/docs/harnesses" />
+  <Card title="Quick start" href="/docs/quickstart" />
+</Cards>
