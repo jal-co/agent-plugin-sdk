@@ -1,11 +1,27 @@
 core:changelogs:
-  - content: "---\npackages:\n  '@jalco/ap-sdk':\n    type: minor\n---\n\n## Install plugins straight from GitHub\n\n`ap-sdk install` and `ap-sdk check` now accept a GitHub source — `owner/repo`,\n`github:owner/repo`, or a github.com URL, with an optional `#ref` for a branch,\ntag, or commit. The repository is downloaded, **validated for compatibility with\nthe ap-sdk plugin format**, and only installed if it default-exports a valid\n`definePlugin(...)` result; otherwise the install is aborted with the reason.\n\nPass `--path <dir>` for a plugin in a subdirectory, and set `GITHUB_TOKEN` for\nprivate repos or a higher API rate limit.\n"
-    filename: 2026-06-30-install-from-github.md
+  - content: "---\npackages:\n  '@jalco/ap-sdk':\n    type: minor\n---\n\n## Ship companion files with a plugin\n\n`Plugin.files` bundles companion files at the plugin root — hook scripts,\nreference docs, JSON read by the plugin's instructions — emitted into every\nharness build tree at their path. The new `readDir` helper loads a whole `src/`\nfolder (recursively, preserving the executable bit), so hooks can reference their\nscripts via the harness's plugin-root variable (e.g. `${CLAUDE_PLUGIN_ROOT}/…`).\n"
+    filename: 2026-06-30-companion-files.md
+    v: 0.0.0
+  - content: "---\npackages:\n  '@jalco/ap-sdk':\n    type: minor\n---\n\n## Load plugin text from files, plus more hook events\n\n- New `readText` / `readTextFrom` helpers load instructions, skill and command\n  bodies, and subagent prompts from a `src/` folder instead of inlining big\n  strings — resolve paths relative to the plugin via `import.meta.url`.\n- New portable hook events: `notification`, `permission-request`,\n  `subagent-stop`, `pre-compact`, and `session-end`, translated to each harness's\n  native names. A harness with no native form for an event now emits a structured\n  warning and skips it instead of guessing.\n"
+    filename: 2026-06-30-file-loading-and-hook-events.md
+    v: 0.0.0
+  - content: "---\npackages:\n  '@jalco/ap-sdk':\n    type: minor\n---\n\n## Frontmatter passthrough on skills and subagents\n\n`defineSkill` and `defineSubagent` accept a `frontmatter` escape hatch for extra\nnative frontmatter fields the SDK doesn't model (e.g. `effort`, a nested\n`stage:` block). It's merged into every skill's `SKILL.md` and into subagent YAML\nfrontmatter (Claude, OpenCode, Copilot, Gemini); the SDK's own fields win on a\nkey clash.\n"
+    filename: 2026-06-30-frontmatter-passthrough.md
+    v: 0.0.0
+  - content: "---\npackages:\n  '@jalco/ap-sdk':\n    type: minor\n---\n\n## Install companion files into local harness dirs\n\n`ap-sdk install` now relocates a plugin's companion files (`plugin.files`) into\neach harness's config root (e.g. `.claude/`, `.gemini/`), preserving each file's\nsubpath and executable bit — not just into the build tree. Harnesses declare the\nlocation via a new optional `filesInstallDir(scope)` on the Harness contract.\n"
+    filename: 2026-06-30-install-companion-files.md
+    v: 0.0.0
+  - content: "---\npackages:\n  '@jalco/ap-sdk':\n    type: minor\n---\n\n## `ap-sdk port` — generate a portable plugin from an existing one\n\nNew `ap-sdk port [dir]` reads an existing plugin/config in any harness's native\nlayout (auto-detected: Claude Code, Codex, Gemini, Copilot, Cursor, Windsurf,\nOpenCode, Pi, or a generic skills/commands/agents tree) and writes a `plugin.ts`\nthat **loads its files** — mapping the manifest, instruction file, `**/SKILL.md`\nskills, commands, agents (model + extra frontmatter), and hooks (native event\nnames → portable), and shipping companion directories via `readDir`. Adds\n`readBody` / `readBodyFrom` helpers that load a body from its native\n`frontmatter + body` file.\n"
+    filename: 2026-06-30-port-command.md
     v: 0.0.0
 core:packages:
   - id: npm:@jal-co/docs
     updated: true
   - changelogIds:
-      - 2026-06-30-install-from-github.md
+      - 2026-06-30-companion-files.md
+      - 2026-06-30-file-loading-and-hook-events.md
+      - 2026-06-30-frontmatter-passthrough.md
+      - 2026-06-30-install-companion-files.md
+      - 2026-06-30-port-command.md
     id: npm:@jalco/ap-sdk
     updated: true
