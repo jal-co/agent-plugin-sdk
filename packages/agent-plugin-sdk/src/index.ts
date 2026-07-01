@@ -6,7 +6,7 @@ export {
   defineHook,
   defineHarness,
 } from "./define.js";
-export { readText, readTextFrom } from "./util/read.js";
+export { readText, readTextFrom, readDir } from "./util/read.js";
 export { build } from "./build.js";
 export type { BuildOptions, HarnessBuild } from "./build.js";
 export { loadPluginTools } from "./load-tools.js";
@@ -33,6 +33,7 @@ export {
 export type { Harness, InstallScope, EmitContext } from "./harnesses/index.js";
 export type {
   Plugin,
+  PluginFile,
   Skill,
   SkillResource,
   Command,

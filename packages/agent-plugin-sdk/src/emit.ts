@@ -85,5 +85,28 @@ export function emitFor(harness: Harness, plugin: Plugin): EmitResult {
 
   const ctx: EmitContext = { warn: (w) => warnings.push(w) };
   const files = harness.emit(projected, ctx);
+
+  // Companion files ride into every harness tree verbatim. A generated file
+  // always wins a path clash; the dropped companion is surfaced as a warning.
+  if (plugin.files?.length) {
+    const taken = new Set(files.map((f) => f.path));
+    for (const file of plugin.files) {
+      if (taken.has(file.path)) {
+        warnings.push({
+          type: "other",
+          harness: harness.id,
+          message: `companion file "${file.path}" collides with a generated file and was skipped.`,
+        });
+        continue;
+      }
+      taken.add(file.path);
+      files.push({
+        path: file.path,
+        content: file.content,
+        executable: file.executable,
+      });
+    }
+  }
+
   return { files, warnings };
 }

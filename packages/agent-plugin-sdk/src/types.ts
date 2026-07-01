@@ -19,6 +19,20 @@ export interface OutputFile {
   executable?: boolean;
 }
 
+/**
+ * An extra file bundled at the plugin root — a hook script, a reference doc a
+ * skill's instructions point at, a JSON config, etc. Emitted verbatim into every
+ * harness build tree at `path`, so hooks/instructions can reference it via the
+ * harness's plugin-root variable (e.g. `${CLAUDE_PLUGIN_ROOT}/hooks/notify.sh`).
+ */
+export interface PluginFile {
+  /** Path relative to the plugin/build root, e.g. `hooks/notify.sh`, `docs/GUIDE.md`. */
+  path: string;
+  content: string;
+  /** Mark executable for scripts (preserved on the emitted file's mode). */
+  executable?: boolean;
+}
+
 /** An extra file bundled alongside a skill (a reference doc, a helper script…). */
 export interface SkillResource {
   /** Path relative to the skill directory, e.g. `references/api.md` or `scripts/run.py`. */
@@ -396,6 +410,12 @@ export interface Plugin {
   subagents?: Subagent[];
   /** Lifecycle command hooks shipped by this plugin. */
   hooks?: Hook[];
+  /**
+   * Companion files bundled at the plugin root — hook scripts, reference docs,
+   * JSON configs read by the plugin's instructions. Emitted into every harness
+   * build tree at their `path`. Use `readDir` to ship a whole `src/` folder.
+   */
+  files?: PluginFile[];
   /**
    * Custom tools whose handlers are real code, shared across harnesses via the
    * runtime adapters. Point at a module that default-exports an array of
