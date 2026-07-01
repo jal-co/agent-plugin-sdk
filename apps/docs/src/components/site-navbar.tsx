@@ -1,45 +1,15 @@
 "use client";
 
-/* ─────────────────────────────────────────────────────────
- * SCROLL STORYBOARD — Navbar (floating variant)
- *
- * Driven by scroll position, not a timeline. Two resting states
- * the bar springs between as you cross the threshold.
- *
- *   scrollY ≤ 24px   "top"      full-width bar, square, flush, no chrome
- *   scrollY >  24px   "floating" large centered pill: narrower, fully
- *                                rounded, dropped 12px, blurred card
- *                                surface with a border + shadow
- *
- * The "docs" variant opts out of this entirely: a flush, full-width
- * header bar so the documentation reads like a product surface.
- * ───────────────────────────────────────────────────────── */
-
-import { motion, useMotionValueEvent, useScroll } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { DocsSearch } from "@/components/search-dialog";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-
-const SCROLL = {
-  threshold: 24, // px scrolled before the bar collapses into a pill
-};
-
-/* The morphing shell. Each key holds [top, floating] values. */
-const SHELL = {
-  maxWidth: [1120, 880], // px — full container → pill width
-  radius: [0, 999], // border-radius
-  offsetY: [0, 12], // px drop from the top edge
-  paddingX: [24, 18], // horizontal padding
-  paddingY: [14, 10], // vertical padding
-  spring: { type: "spring" as const, stiffness: 320, damping: 32 },
-};
 
 const LINKS = [
   { label: "Docs", href: "/docs" },
   { label: "Harnesses", href: "/docs/harnesses" },
+  { label: "Plugins", href: "/docs/plugins" },
   { label: "Changelog", href: "/docs/changelog" },
 ];
 
@@ -50,7 +20,6 @@ function Logo() {
       className="group relative flex items-center"
       aria-label="ap-sdk home"
     >
-      {/* Pure-black monochrome mark — invert it in dark mode so it stays visible. */}
       <Image
         src="/ap-sdk.svg"
         alt="ap-sdk"
@@ -60,7 +29,6 @@ function Logo() {
         unoptimized
         className="size-9 transition-opacity duration-200 group-hover:opacity-0 dark:invert"
       />
-      {/* On hover the mark dissolves into a terminal-style wordmark. */}
       <span
         aria-hidden="true"
         className="pointer-events-none absolute inset-y-0 left-0 flex items-center whitespace-nowrap font-mono text-sm font-medium text-foreground opacity-0 transition-opacity duration-200 group-hover:opacity-100"
@@ -91,6 +59,7 @@ function NavLinks() {
 function Actions() {
   return (
     <div className="flex items-center gap-1.5">
+      <DocsSearch />
       <ThemeToggle />
       <Button asChild variant="ghost" size="icon-sm" aria-label="GitHub">
         <a
@@ -116,60 +85,14 @@ function Actions() {
   );
 }
 
-export function SiteNavbar({
-  variant = "floating",
-}: {
-  variant?: "floating" | "docs";
-}) {
-  const { scrollY } = useScroll();
-  const [floating, setFloating] = useState(false);
-
-  useMotionValueEvent(scrollY, "change", (y) => {
-    setFloating(y > SCROLL.threshold);
-  });
-
-  // Docs: a flush, full-width header — no pill morph.
-  if (variant === "docs") {
-    return (
-      <header className="fixed inset-x-0 top-0 z-50 h-16 border-b border-border/60 bg-background/80 backdrop-blur-md">
-        <div className="mx-auto flex h-full max-w-[1400px] items-center justify-between gap-6 px-6">
-          <Logo />
-          <NavLinks />
-          <Actions />
-        </div>
-      </header>
-    );
-  }
-
-  const i = floating ? 1 : 0;
-
+export function SiteNavbar() {
   return (
-    <div className="pointer-events-none fixed inset-x-0 top-0 z-50 flex justify-center px-4">
-      <motion.nav
-        layout
-        initial={false}
-        animate={{
-          maxWidth: SHELL.maxWidth[i],
-          borderRadius: SHELL.radius[i],
-          y: SHELL.offsetY[i],
-          paddingLeft: SHELL.paddingX[i],
-          paddingRight: SHELL.paddingX[i],
-          paddingTop: SHELL.paddingY[i],
-          paddingBottom: SHELL.paddingY[i],
-        }}
-        transition={SHELL.spring}
-        className={cn(
-          "pointer-events-auto flex w-full items-center justify-between gap-6",
-          "transition-[background-color,border-color,box-shadow,backdrop-filter] duration-300",
-          floating
-            ? "border border-border bg-card/70 shadow-lg backdrop-blur-md"
-            : "border border-transparent bg-transparent shadow-none",
-        )}
-      >
+    <header className="fixed inset-x-0 top-0 z-50 h-16 border-b border-border/60 bg-background/80 backdrop-blur-md">
+      <div className="mx-auto flex h-full max-w-[1400px] items-center justify-between gap-6 px-6">
         <Logo />
         <NavLinks />
         <Actions />
-      </motion.nav>
-    </div>
+      </div>
+    </header>
   );
 }

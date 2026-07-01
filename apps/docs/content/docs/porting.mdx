@@ -1,168 +1,58 @@
 ---
-title: Port a Claude Code plugin
-description: Turn an existing Claude Code plugin into one portable definePlugin that ships to every harness.
+title: Port an existing plugin
+description: Turn a Claude Code plugin, Cursor rules, Copilot prompts, or another native layout into one portable plugin.ts.
 ---
 
-Already have a Claude Code plugin — a `.claude-plugin/`, `agents/`, `commands/`,
-`hooks/`, skills, and companion files? Port it **once** into a portable
-`definePlugin` and compile it to Claude Code, Codex, Gemini CLI, Copilot, Cursor,
-Windsurf, Pi, and OpenCode. You keep your files on disk; the plugin definition
-just points at them.
+Already have a plugin or rules folder for one harness? Port it **once** into a portable `definePlugin` and compile it to Claude Code, Codex, Gemini CLI, Copilot, Cursor, Windsurf, Pi, and OpenCode. You keep your files on disk; the generated plugin definition points at them.
 
 ## The fast path: `ap-sdk port`
-
-Don't write it by hand — point the CLI at your existing plugin and it generates a
-`plugin.ts` that **loads your files** (never inlines). It auto-detects the source
-layout (Claude Code, Codex, Gemini, Copilot, Cursor, Windsurf, OpenCode, Pi, or a
-generic `skills/` + `commands/` + `agents/` tree):
 
 ```bash
 npx ap-sdk port ./my-plugin            # writes ./my-plugin/plugin.ts
 npx ap-sdk port ./my-plugin --dry-run  # preview it first
 ```
 
-It maps the manifest, instruction file, `**/SKILL.md` skills, commands, agents
-(with their `model` and extra frontmatter), and hooks (native event names →
-portable ones), and ships companion directories with `readDir`. Then:
+`port` detects the source layout, reads manifests, instruction files, `SKILL.md` skills, commands, agents, hooks, and companion directories, then writes a portable `plugin.ts` that loads files with `readTextFrom`, `readBodyFrom`, and `readDir`.
 
 ```bash compact
-npx ap-sdk check plugin.ts   # validate
-npx ap-sdk build plugin.ts   # emit every harness
+npx ap-sdk check plugin.ts
+npx ap-sdk build plugin.ts
 ```
 
-Review the result and fill in anything the generator flagged with a `TODO`. The
-rest of this page explains the mapping it applies, for when you want to tweak by
-hand.
+Review any generated `TODO` comments. Unmapped native hook events are flagged in code so you can choose the right portable event.
 
-## The mapping
+## Source layouts
 
-| Claude Code | ap-sdk |
-| --- | --- |
-| `.claude-plugin/plugin.json` | `id`, `description`, `version`, `author`, `homepage`, `license`, `marketplace` |
-| `CLAUDE.md` | `instructions` |
-| skills (`SKILL.md`) | `defineSkill` (extra frontmatter → `frontmatter`) |
-| `agents/*.md` | `defineSubagent` (`model` → `harness.claude.model`; extra fields → `frontmatter`) |
-| `commands/*.md` | `defineCommand` (extra frontmatter → `frontmatter`) |
-| `hooks/hooks.json` | `defineHook` (events incl. `notification`, `permission-request`; `async` preserved) |
-| `hooks/*.sh`, `*.py`, `doctrine/`, `docs/` | `files` (companion files, via `readDir`) |
+| Source layout | Detector looks for | Guide |
+| --- | --- | --- |
+| Claude Code plugin | `.claude-plugin/plugin.json`, `CLAUDE.md`, `skills/**/SKILL.md`, `commands/`, `agents/`, `hooks/` | [Claude Code](/docs/porting/claude) |
+| Gemini CLI extension | `gemini-extension.json`, `GEMINI.md`, `.gemini/agents` | [Gemini CLI](/docs/porting/gemini) |
+| OpenCode plugin | `opencode.json` plus generic content folders | [OpenCode](/docs/porting/opencode) |
+| GitHub Copilot | `.github/copilot-instructions.md`, `.github/prompts`, `.github/agents` | [Copilot](/docs/porting/copilot) |
+| Cursor | `.cursor` plus generic content folders | [Cursor](/docs/porting/cursor) |
+| Windsurf | `.windsurf` plus generic content folders | [Windsurf](/docs/porting/windsurf) |
+| Codex | `.codex` or `.agents`, `.codex/prompts` | [Codex](/docs/porting/codex) |
+| Pi | `.pi` plus generic content folders | [Pi](/docs/porting/pi) |
+| Generic tree | `skills/`, `commands/`, `agents/`, instruction files | [Generic tree](/docs/porting/generic) |
 
 ## Keep your files on disk
 
-Instead of inlining prose, load it — `readText` for a single file,
-`readTextFrom` to bind a base, `readDir` to ship a whole folder. Resolve paths
-relative to the plugin file with `import.meta.url`:
-
 ```ts title="plugin.ts"
-import {
-  definePlugin,
-  defineSkill,
-  defineSubagent,
-  defineCommand,
-  defineHook,
-  readText,
-  readTextFrom,
-  readDir,
-} from "@jalco/ap-sdk";
+import { definePlugin, readDir, readTextFrom } from "@jalco/ap-sdk";
 
 const read = readTextFrom(import.meta.url);
 
 export default definePlugin({
   id: "alp-river",
   description: "Multi-step agent refinement pipeline.",
-  version: "1.3.2",
-  author: { name: "Alper Ortac" },
   instructions: read("./CLAUDE.md"),
+  files: readDir("./hooks", import.meta.url, "hooks"),
 });
 ```
 
-## Skills, agents, commands
-
-Load each body from its file, and use the `frontmatter` escape hatch for native
-fields the SDK doesn't model (an agent's `effort`, a nested `stage:` block):
-
-```ts
-skills: [
-  defineSkill({
-    name: "diff-review",
-    description: "Summarize and risk-flag uncommitted changes.",
-    instructions: read("./skills/diff-review/SKILL.md"),
-  }),
-],
-subagents: [
-  defineSubagent({
-    name: "triage",
-    description: "Classify the task and route it.",
-    prompt: read("./agents/triage.md"),
-    tools: ["Read", "Grep", "Bash"],
-    harness: { claude: { model: "sonnet" } },
-    frontmatter: { effort: "high", stage: { routes: ["code"] } },
-  }),
-],
-commands: [
-  defineCommand({
-    name: "run",
-    description: "Run the pipeline.",
-    body: read("./commands/run.md"),
-  }),
-],
-```
-
-The known fields always win a clash, so passthrough only *adds* frontmatter — it
-can't accidentally overwrite `name` or `description`.
-
-## Hooks and their scripts
-
-Hook events map to every harness's native name — including `notification` and
-`permission-request`. Ship the scripts your hooks call as **companion files**,
-and reference them via the harness's plugin-root variable:
-
-```ts
-hooks: [
-  defineHook({
-    event: "session-start",
-    command: "${CLAUDE_PLUGIN_ROOT}/hooks/inject-workflow.sh",
-    timeout: 5,
-  }),
-  defineHook({
-    event: "notification",
-    command: "${CLAUDE_PLUGIN_ROOT}/hooks/notify.sh",
-    async: true, // fire-and-forget; Claude runs it without blocking the turn
-  }),
-],
-// Ship the hook scripts + reference docs the instructions point at.
-files: [
-  ...readDir("./hooks", import.meta.url, "hooks"),
-  ...readDir("./doctrine", import.meta.url, "doctrine"),
-],
-```
-
-`readDir` preserves the executable bit, so your `.sh`/`.py` hooks stay runnable.
-A harness with no native form for an event (or for hooks at all) drops just that
-piece with a [warning](/docs/harnesses#what-happens-when-a-feature-isnt-supported),
-never a broken file. `async` is emitted where the harness models it natively
-(Claude Code) and otherwise dropped with a warning — the hook still runs, just
-synchronously within its timeout.
-
-## Build and review the gaps
-
-```bash compact
-npx ap-sdk check          # validate the definition
-npx ap-sdk build          # emit every harness tree under .aps-out/
-```
-
-`build` prints a warning for anything a target couldn't represent — read them to
-see exactly what each non-Claude harness dropped, and use each feature's
-`harness` override to bridge where it matters. The [support matrix](/docs/harnesses)
-shows the capabilities at a glance.
-
-## Let an agent do it
-
-Porting is mechanical, so it's a great job for an agent. Point your coding agent
-at the **Port a Claude Code plugin** skill (in the repo's `skills/`), which walks
-it through inspecting the plugin tree and generating a `plugin.ts` that loads your
-files.
+A harness with no native form for a feature drops just that piece with a [warning](/docs/harnesses#what-happens-when-a-feature-isnt-supported), never a broken file.
 
 <Cards>
-  <Card title="Installing a plugin" href="/docs/installing-plugins" />
-  <Card title="Authoring a harness" href="/docs/authoring-a-harness" />
+  <Card title="Start from scratch" href="/docs/quickstart" />
+  <Card title="Support matrix" href="/docs/harnesses" />
 </Cards>

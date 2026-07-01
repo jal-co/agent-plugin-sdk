@@ -1,0 +1,36 @@
+---
+title: Runtime entrypoint
+description: Runtime helpers for portable tools.
+---
+
+## defineTool
+
+Defines one executable tool with metadata, JSON schema parameters, and a single handler shared across harness adapters.
+
+```ts
+export function defineTool<Args>(tool: Tool<Args>): Tool<Args>;
+```
+
+## listTools
+
+Loads a tools module and returns the declared tool metadata for local inspection or generated adapters.
+
+```ts
+export async function listTools(modulePath: string): Promise<Tool[]>;
+```
+
+## callTool
+
+Invokes a named tool locally with JSON arguments, matching the CLI's `ap-sdk tools --call` loop.
+
+```ts
+export async function callTool(modulePath: string, name: string, args: unknown): Promise<ToolResult>;
+```
+
+## contentToText
+
+Converts structured tool content blocks into plain text for terminal output.
+
+```ts
+export function contentToText(content: ToolContent[]): string;
+```

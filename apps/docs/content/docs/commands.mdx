@@ -1,0 +1,45 @@
+---
+title: Commands
+description: Define portable slash commands and prompt commands with argument templates.
+---
+
+Commands compile to each harness' native command or prompt file. Use them for repeatable workflows where the user explicitly invokes an action.
+
+```ts title="plugin.ts"
+import { defineCommand, definePlugin } from "@jalco/ap-sdk";
+
+export default definePlugin({
+  id: "issue-tools",
+  description: "Issue triage commands.",
+  commands: [
+    defineCommand({
+      name: "fix-issue",
+      description: "Fix a GitHub issue end to end.",
+      argumentHint: "<issue-number>",
+      allowedTools: ["Bash", "Read", "Edit"],
+      body: "Fix issue #$1. Use $ARGUMENTS as the raw user request.",
+      harness: { claude: { model: "sonnet" }, opencode: { model: "gpt-5" } },
+    }),
+  ],
+});
+```
+
+## Argument templates
+
+| Template | Meaning | Portability |
+| --- | --- | --- |
+| `$ARGUMENTS` | The complete argument string. | Portable everywhere. |
+| `$1`, `$2` | 1-based positional args in ap-sdk source. | Claude is rewritten to its 0-based native form. |
+| `` !`shell` `` | Native shell interpolation. | Passed through for Claude and OpenCode. |
+| `@file` | Native file reference. | Passed through for Claude and OpenCode. |
+
+## Fields
+
+- `name`, `description`, `argumentHint`, and `body` define the command.
+- `allowedTools` is honored by Claude Code.
+- `frontmatter` is honored by YAML-frontmatter harnesses; Gemini TOML and Cursor plain markdown ignore it.
+- `harness.claude.model`, `harness.opencode.model`, and `harness.copilot.model` / `agent` set native model hints.
+
+## Portability notes
+
+If a harness cannot represent command metadata, the command body still emits and the build reports a warning for the unsupported option. Next: [subagents](/docs/subagents) and the [support matrix](/docs/harnesses).

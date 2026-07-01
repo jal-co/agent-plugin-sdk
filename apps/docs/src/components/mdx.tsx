@@ -1,10 +1,12 @@
 import type { MDXComponents } from "mdx/types";
 import Link from "next/link";
 import { type ComponentProps, isValidElement, type ReactNode } from "react";
+import { Callout as CalloutBase } from "@/components/callout";
 import { CodeBlock as CodeBlockBase } from "@/components/code-block";
 import { CodeBlockCommand as CodeBlockCommandBase } from "@/components/code-block-command";
 import { CodeLine as CodeLineBase } from "@/components/code-line";
 import { SupportMatrix } from "@/components/support-matrix";
+import { Tab as TabBase, Tabs as TabsBase } from "@/components/tabs";
 import { convertNpmCommand } from "@/lib/convert-npm-command";
 import { cn } from "@/lib/utils";
 
@@ -41,6 +43,14 @@ function CodeBlockCommand({
       {...props}
     />
   );
+}
+
+function Callout({ className, ...props }: ComponentProps<typeof CalloutBase>) {
+  return <CalloutBase className={cn("not-prose my-6", className)} {...props} />;
+}
+
+function Tabs({ className, ...props }: ComponentProps<typeof TabsBase>) {
+  return <TabsBase className={cn("not-prose my-6", className)} {...props} />;
 }
 
 /**
@@ -168,6 +178,9 @@ export function getMDXComponents(components?: MDXComponents): MDXComponents {
     CodeBlock,
     CodeLine,
     CodeBlockCommand,
+    Callout,
+    Tabs,
+    Tab: TabBase,
     NpmCommand,
     SupportMatrix,
     ...components,

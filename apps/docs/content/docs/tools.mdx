@@ -1,0 +1,45 @@
+---
+title: Tools
+description: Author one TypeScript tool module and generate harness glue around it.
+---
+
+Tools let you keep real implementation code in one `tools.ts` module. The build copies the module into every output and generates the glue each harness needs: MCP server wiring for Claude/Codex and native tool/plugin glue for Pi/OpenCode.
+
+```ts title="tools.ts"
+import { defineTool } from "@jalco/ap-sdk/runtime";
+
+export default [
+  defineTool({
+    name: "echo",
+    description: "Echo text back for smoke tests.",
+    inputSchema: { type: "object", properties: { text: { type: "string" } }, required: ["text"] },
+    async execute(input: { text: string }) {
+      return { content: [{ type: "text", text: input.text }] };
+    },
+  }),
+];
+```
+
+```ts title="plugin.ts"
+import { definePlugin } from "@jalco/ap-sdk";
+
+export default definePlugin({
+  id: "echo-tool",
+  description: "Tool smoke test.",
+  tools: { module: "./tools.ts", names: ["echo"] },
+});
+```
+
+## Local loop
+
+```bash
+ap-sdk tools --call echo --args '{"text":"hello"}'
+```
+
+## Fields
+
+- `tools.module` points at the TypeScript module.
+- `tools.names` limits or documents the exported tools.
+- `defineTool` describes the name, description, input schema, and execute function.
+
+See `packages/agent-plugin-sdk/examples/echo-tool/` and `examples/planreview/` for working projects. Next: [instructions and files](/docs/instructions-and-files) and the [support matrix](/docs/harnesses).

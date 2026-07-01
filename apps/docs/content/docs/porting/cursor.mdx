@@ -1,0 +1,33 @@
+---
+title: Port a Cursor plugin to every harness
+description: Convert a Cursor layout into one portable plugin for Claude Code, Codex, Gemini CLI, Copilot, Cursor, Windsurf, Pi, and OpenCode.
+---
+
+The detector recognizes this source when it finds `.cursor` plus shared `skills/`, `commands/`, `agents/`, hooks, and instruction files.
+
+```bash
+npx ap-sdk port ./my-plugin
+npx ap-sdk port ./my-plugin --dry-run
+```
+
+## Mapping
+
+| Cursor source | ap-sdk output |
+| --- | --- |
+| `.cursor` | layout detection |
+| `skills/**/SKILL.md` | `defineSkill` |
+| `commands/*.md` | `defineCommand` |
+| `agents/*.md` | `defineSubagent` |
+
+## What does not carry over
+
+The generator only claims what `src/port.ts` can read: manifests, instruction files, `SKILL.md` skills, markdown commands, markdown agents, Claude-style hook JSON, hook script folders, and non-structural companion directories. Native hook events without a portable mapping are emitted as `stop` with a `TODO` comment so you can choose the right event. Harness-specific settings outside those files remain in your source tree but are not modeled unless you add them to the generated `plugin.ts`.
+
+## Next steps
+
+```bash compact
+npx ap-sdk check plugin.ts
+npx ap-sdk build plugin.ts
+```
+
+Then review the [support matrix](/docs/harnesses) and install the plugin into the harnesses you use.

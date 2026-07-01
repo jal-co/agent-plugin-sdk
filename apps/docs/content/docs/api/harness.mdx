@@ -1,0 +1,44 @@
+---
+title: Harness entrypoint
+description: Harness authoring toolkit for custom targets.
+---
+
+## defineHarness
+
+Identity helper for a custom target harness: support map, emit translator, install paths, and native config behavior.
+
+```ts
+export function defineHarness(harness: Harness): Harness;
+```
+
+## registerHarness
+
+Registers a custom harness id so build, install, and CLI target validation can use it.
+
+```ts
+export function registerHarness(harness: Harness): void;
+```
+
+## Harness
+
+The contract every built-in and custom harness implements: id, display name, support map, emit function, and install path helpers.
+
+```ts
+export interface Harness { id: HarnessId; displayName: string; supports: FeatureSupport; ... }
+```
+
+## EmitContext
+
+Context passed to emitters, including helper methods and target metadata.
+
+```ts
+export interface EmitContext { harness: Harness; ... }
+```
+
+## InstallScope
+
+Where install writes artifacts: project directories or home-directory global config.
+
+```ts
+export type InstallScope = 'project' | 'global';
+```

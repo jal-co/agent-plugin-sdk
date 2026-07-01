@@ -2,7 +2,8 @@ import { getGithubLastEdit } from "fumadocs-core/content/github";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { AiCopyButton } from "@/components/ai-copy-button";
-import { DocsToc } from "@/components/docs-toc";
+import { DocsPagination } from "@/components/docs-pagination";
+import { DocsToc, MobileDocsToc } from "@/components/docs-toc";
 import { getMDXComponents } from "@/components/mdx";
 import { gitConfig } from "@/lib/shared";
 import { getLLMText, getPageImage, source } from "@/lib/source";
@@ -34,6 +35,7 @@ export default async function Page(props: PageProps<"/docs/[[...slug]]">) {
   const toc = page.data.toc;
   const pageText = await getLLMText(page);
   const lastEdit = await getLastEdit(page.path);
+  const editUrl = `https://github.com/${gitConfig.user}/${gitConfig.repo}/edit/${gitConfig.branch}/apps/docs/content/docs/${page.path}`;
 
   return (
     <div className="mx-auto grid w-full max-w-[88rem] grid-cols-1 gap-10 px-6 pb-16 md:px-10 xl:grid-cols-[minmax(0,1fr)_14rem] xl:gap-12">
@@ -50,9 +52,31 @@ export default async function Page(props: PageProps<"/docs/[[...slug]]">) {
             ) : null}
           </div>
 
+          <div className="flex flex-col gap-3 xl:hidden">
+            <div className="flex flex-wrap items-center gap-3">
+              <AiCopyButton
+                value={pageText}
+                label="Copy page"
+                brandColors
+                size="sm"
+              />
+              <a
+                href={editUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+              >
+                Edit this page on GitHub
+              </a>
+            </div>
+            <MobileDocsToc items={toc} />
+          </div>
+
           <div className="prose prose-zinc max-w-none dark:prose-invert prose-headings:scroll-mt-24 prose-headings:text-balance prose-p:text-pretty prose-pre:my-5 prose-code:before:content-none prose-code:after:content-none">
             <MDX components={getMDXComponents()} />
           </div>
+
+          <DocsPagination current={page.url} />
         </div>
       </div>
 
@@ -80,6 +104,14 @@ export default async function Page(props: PageProps<"/docs/[[...slug]]">) {
                 )}
               </p>
             ) : null}
+            <a
+              href={editUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Edit this page on GitHub
+            </a>
           </div>
         </div>
       </div>

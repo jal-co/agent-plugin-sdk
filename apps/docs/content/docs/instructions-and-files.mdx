@@ -1,0 +1,37 @@
+---
+title: Instructions and files
+description: Ship always-on instructions and companion files alongside generated artifacts.
+---
+
+A plugin can include global instructions plus arbitrary files. Instructions become native context files (`CLAUDE.md`, `AGENTS.md`, `GEMINI.md`) and installs merge them as id-keyed blocks; files are copied verbatim into build trees.
+
+```ts title="plugin.ts"
+import { definePlugin, defineSkill, readDir, readTextFrom } from "@jalco/ap-sdk";
+
+const read = readTextFrom(import.meta.url);
+
+export default definePlugin({
+  id: "repo-playbook",
+  description: "Repository-specific playbook.",
+  instructions: read("./AGENTS.md"),
+  skills: [
+    defineSkill({
+      name: "release-check",
+      description: "Use before preparing a release.",
+      instructions: read("./skills/release/SKILL.md"),
+      resources: [{ path: "checklist.md", content: read("./skills/release/checklist.md") }],
+    }),
+  ],
+  files: readDir("./hooks", import.meta.url, "hooks"),
+});
+```
+
+## Fields and helpers
+
+- `instructions` is always-on guidance. Install uses an id-keyed markdown block so re-installs update the SDK-managed section without clobbering foreign text.
+- `files` contains `PluginFile` entries emitted into every build tree; `executable` preserves script bits.
+- `SkillResource` files live inside a skill directory. `PluginFile` files live at the plugin root for scripts, templates, and shared assets.
+- `readText`, `readTextFrom`, and `readDir` keep content on disk and avoid giant inline strings.
+- Plugin-root variables such as `${CLAUDE_PLUGIN_ROOT}/hooks/notify.sh` let native configs reference emitted companion files.
+
+Next: [skills](/docs/skills), [porting](/docs/porting), and the [support matrix](/docs/harnesses).

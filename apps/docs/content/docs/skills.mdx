@@ -1,0 +1,47 @@
+---
+title: Skills
+description: Define reusable skill documents once and emit native skill folders for every harness.
+---
+
+Skills are reusable instructions with a short trigger description. The SDK emits each skill into the native skill format a harness understands and warns when a harness cannot represent an option.
+
+```ts title="plugin.ts"
+import { definePlugin, defineSkill } from "@jalco/ap-sdk";
+
+export default definePlugin({
+  id: "review-helper",
+  description: "Git review workflows.",
+  skills: [
+    defineSkill({
+      name: "diff-review",
+      description:
+        "Use when the user asks what changed or wants risks before committing.",
+      instructions: "Run `git diff HEAD`, summarize changes, then list risks.",
+      allowedTools: ["Bash", "Read", "Grep"],
+      resources: [{ path: "checklist.md", content: "# Review checklist
+" }],
+      frontmatter: { color: "blue" },
+    }),
+  ],
+});
+```
+
+## Fields
+
+- `name` — kebab-case id, max 64 characters.
+- `description` — max 1024 characters, the tightest harness limit; front-load trigger conditions because agents use this to decide when to load the skill.
+- `instructions` — the skill body.
+- `allowedTools` — honored by Claude Code and Pi.
+- `disableModelInvocation` — Pi-specific.
+- `license` — emitted where native skill metadata supports it.
+- `metadata` — honored by OpenCode and Pi.
+- `frontmatter` — escape hatch merged into YAML-frontmatter harnesses; SDK-owned fields win on conflicts.
+- `resources` — extra files emitted inside the skill directory.
+
+<Callout variant="tip" title="Descriptions are routing hints">
+Keep descriptions concise and action-oriented. The first sentence should say when to use the skill.
+</Callout>
+
+## Portability notes
+
+Unsupported options become structured build warnings; they are not silently dropped. See the [support matrix](/docs/harnesses), then continue with [commands](/docs/commands).

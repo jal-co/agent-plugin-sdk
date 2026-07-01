@@ -1,0 +1,40 @@
+---
+title: MCP servers
+description: Declare stdio and HTTP MCP servers once and emit native config.
+---
+
+MCP servers are configuration, not code. ap-sdk emits native MCP config for harnesses that support it and warns for those that do not.
+
+```ts title="plugin.ts"
+import { definePlugin } from "@jalco/ap-sdk";
+
+export default definePlugin({
+  id: "repo-context",
+  description: "Repository context MCP servers.",
+  mcpServers: {
+    github: {
+      command: "npx",
+      args: ["-y", "@modelcontextprotocol/server-github"],
+      env: { GITHUB_TOKEN: "${GITHUB_TOKEN}" },
+    },
+    docs: {
+      transport: "http",
+      url: "https://docs.example.com/mcp",
+      headers: { Authorization: "Bearer ${DOCS_TOKEN}" },
+    },
+  },
+});
+```
+
+## Fields
+
+- Stdio servers use `command`, `args`, `env`, and `cwd`.
+- HTTP servers use `transport: "http"`, `url`, and `headers`.
+- Claude and Codex receive `.mcp.json`.
+- OpenCode receives `opencode.json` under the `mcp` key.
+
+<Callout variant="warning" title="Pi has no native MCP">
+Pi builds emit a warning for MCP servers. The declaration still works for other targets in the same build.
+</Callout>
+
+Next: [tools](/docs/tools) and the [support matrix](/docs/harnesses).
