@@ -1,0 +1,13 @@
+{
+  "name": "ap-sdk-plugin-template",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "ap-sdk check plugin.ts",
+    "build": "ap-sdk build plugin.ts",
+    "install-local": "ap-sdk install plugin.ts"
+  },
+  "devDependencies": {
+    "@jalco/ap-sdk": "^0.3.0"
+  }
+}
