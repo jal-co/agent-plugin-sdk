@@ -14,6 +14,27 @@ so it can never drift from the code.
 
 <SupportMatrix />
 
+## What happens when a feature isn't supported
+
+There is **no silent fallback**. When a plugin uses a feature a target can't
+represent, the build follows ai-sdk's `warnings[]` contract:
+
+- **Whole feature unsupported** — the feature is **dropped from that harness's
+  output** and the build records an `unsupported-feature` `BuildWarning` naming
+  the dropped items (e.g. Pi has no subagents, so a plugin's subagents are
+  skipped for the Pi target only). Every other harness still gets them. Nothing
+  broken or half-written is emitted.
+- **One option unsupported** — the feature emits, but a single field can't be
+  represented, so it's dropped with an `unsupported-option` warning (e.g. Codex
+  prompts ignore a per-command `model`; a harness with no native form for a hook
+  event skips just that hook).
+
+Warnings never throw — only a structurally invalid plugin does. They're printed
+by `ap-sdk build`, returned on each `HarnessBuild.warnings`, and surfaced in
+`installSkills` results, so you always see exactly what a target couldn't take
+and why. Many harnesses also attach an actionable note (“use the `harness`
+override…”) telling you how to bridge the gap.
+
 ## Native formats
 
 Each harness emits at the exact paths and frontmatter it expects:
