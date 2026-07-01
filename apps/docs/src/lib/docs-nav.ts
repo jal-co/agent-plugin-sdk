@@ -55,9 +55,14 @@ export function getDocsNav(): DocsNavGroup[] {
   // The changelog is a standalone route (not MDX content), so append it to the
   // last section by hand.
   const last = groups.at(-1);
+  const plugins: DocsNavItem = { title: "Plugins", url: "/docs/plugins" };
   const changelog: DocsNavItem = { title: "Changelog", url: "/docs/changelog" };
-  if (last) last.items.push(changelog);
-  else groups.push({ items: [changelog] });
+  if (last) last.items.push(plugins, changelog);
+  else groups.push({ items: [plugins, changelog] });
 
   return groups;
+}
+
+export function getDocsNavFlat(): DocsNavItem[] {
+  return getDocsNav().flatMap((group) => group.items);
 }

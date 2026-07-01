@@ -1,0 +1,37 @@
+name: Validate ap-sdk plugin
+description: Check and build an ap-sdk plugin repository.
+inputs:
+  plugin-path:
+    description: Path to the plugin file or directory.
+    default: .
+  targets:
+    description: Optional comma-separated target harness ids.
+    default: ""
+  fail-on-warnings:
+    description: Fail when build produces capability warnings.
+    default: "false"
+runs:
+  using: composite
+  steps:
+    - name: Check plugin
+      shell: bash
+      run: npx -y @jalco/ap-sdk check "${{ inputs.plugin-path }}"
+    - name: Build plugin
+      shell: bash
+      run: |
+        if [ -n "${{ inputs.targets }}" ]; then
+          npx -y @jalco/ap-sdk build "${{ inputs.plugin-path }}" --target "${{ inputs.targets }}"
+        else
+          npx -y @jalco/ap-sdk build "${{ inputs.plugin-path }}"
+        fi
+    - name: Fail on warnings
+      if: ${{ inputs.fail-on-warnings == 'true' }}
+      shell: bash
+      run: |
+        echo "BLOCKED-ON: ap-sdk build --fail-on-warnings (proposed)"
+        exit 1
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ap-sdk-artifacts
+        path: .aps-out/

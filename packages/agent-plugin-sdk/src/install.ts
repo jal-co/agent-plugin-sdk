@@ -1,4 +1,5 @@
 import { join, dirname, basename } from "node:path";
+import { homedir } from "node:os";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import type {
   HarnessId,
@@ -29,8 +30,26 @@ export interface InstalledItem {
   name: string;
   /** Absolute paths written (or that would be written, in dry-run). */
   files: string[];
+  /** Extra structured data needed to reverse merged installs. */
+  detail?: unknown;
   /** A note about a harness-specific quirk, e.g. Codex commands forced to global. */
   note?: string;
+}
+
+export interface InstallManifest {
+  version: 1;
+  plugins: Record<
+    string,
+    {
+      installedAt: string;
+      scope: InstallScope;
+      items: Array<Omit<InstalledItem, "note">>;
+    }
+  >;
+}
+
+export function installManifestPath(scope: InstallScope): string {
+  return join(scope === "global" ? homedir() : process.cwd(), ".ap-sdk", "install-manifest.json");
 }
 
 /**
@@ -107,7 +126,20 @@ export function installSkills(
     }
   }
 
+  if (!options.dryRun) {
+    writeInstallManifest(plugin.id, scope, results);
+  }
+
   return results;
+}
+
+
+/** Regex matching the SDK-managed instruction block for a plugin id. */
+export function contextBlockRegex(pluginId: string): RegExp {
+  const escaped = pluginId.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(
+    `<!-- agent-plugin-sdk:${escaped} START[\\s\\S]*?<!-- agent-plugin-sdk:${escaped} END -->`,
+  );
 }
 
 /**
@@ -115,7 +147,7 @@ export function installSkills(
  * replacing any prior block for the same plugin id (idempotent) and preserving
  * the rest of the file. Appends if no prior block exists.
  */
-function mergeMarkdownBlock(
+export function mergeMarkdownBlock(
   file: string,
   pluginId: string,
   instructions: string,
@@ -192,6 +224,7 @@ function installHooks(
     kind: "hook",
     name: `${hooks.length} hook(s)`,
     files: [target],
+    detail: { hooks: config.hooks },
     note: harness.hookInstallNote,
   };
 }
@@ -260,6 +293,7 @@ function installMcp(
     kind: "mcp",
     name: names,
     files: [target.path],
+    detail: { mergeKey: target.mergeKey, names: Object.keys(servers) },
     note: `merged ${Object.keys(servers).length} server(s) under "${target.mergeKey}"`,
   };
 }
@@ -384,4 +418,38 @@ function installCommand(
   }
 
   return { harness: harness.id, kind: "command", name, files: [target], note };
+}
+
+
+function writeInstallManifest(
+  pluginId: string,
+  scope: InstallScope,
+  items: InstalledItem[],
+): void {
+  const file = installManifestPath(scope);
+  const manifest = readInstallManifest(file);
+  manifest.plugins[pluginId] = {
+    installedAt: new Date().toISOString(),
+    scope,
+    items: items.map(({ note: _note, ...item }) => item),
+  };
+  mkdirSync(dirname(file), { recursive: true });
+  writeFileSync(file, JSON.stringify(manifest, null, 2) + "\n");
+}
+
+function readInstallManifest(file: string): InstallManifest {
+  if (!existsSync(file)) return { version: 1, plugins: {} };
+  const raw = readFileSync(file, "utf8").trim();
+  if (!raw) return { version: 1, plugins: {} };
+  try {
+    const parsed = JSON.parse(raw) as InstallManifest;
+    if (parsed.version !== 1 || !parsed.plugins || typeof parsed.plugins !== "object") {
+      throw new Error("unsupported manifest shape");
+    }
+    return parsed;
+  } catch (err) {
+    throw new Error(
+      `Refusing to overwrite ${file}: it is not valid install manifest JSON (${(err as Error).message}).`,
+    );
+  }
 }

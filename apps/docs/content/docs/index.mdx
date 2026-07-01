@@ -12,6 +12,9 @@ compiles it to the **native installable artifacts** each harness expects. No
 runtime, no wrapper — the output is exactly the files those harnesses load on
 their own.
 
+Already have a plugin for one harness? Start with [porting](/docs/porting)
+instead and let `ap-sdk port` generate the portable definition from your files.
+
 ```ts title="plugin.ts"
 import { definePlugin, defineSkill } from "@jalco/ap-sdk";
 
@@ -62,6 +65,10 @@ Harnesses share a common feature set, but each also diverges. The SDK borrows
 <Cards>
   <Card title="Installation" href="/docs/installation" />
   <Card title="Quick start" href="/docs/quickstart" />
+  <Card title="Skills" href="/docs/skills" />
+  <Card title="Commands" href="/docs/commands" />
+  <Card title="Hooks" href="/docs/hooks" />
+  <Card title="Tools" href="/docs/tools" />
   <Card title="Harnesses" href="/docs/harnesses" />
   <Card title="Origins" href="/docs/origins" />
 </Cards>

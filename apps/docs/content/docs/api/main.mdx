@@ -1,0 +1,84 @@
+---
+title: Main entrypoint
+description: Public helpers and types exported by @jalco/ap-sdk.
+---
+
+## definePlugin
+
+Identity helper for a portable plugin definition. Author once, then build or install native artifacts for each harness.
+
+```ts
+export function definePlugin(plugin: Plugin): Plugin;
+```
+
+## defineSkill
+
+Defines a portable agent skill with a trigger description, instructions, optional resources, and harness metadata.
+
+```ts
+export function defineSkill(skill: Skill): Skill;
+```
+
+## defineCommand
+
+Defines a portable slash command or prompt command with argument templating and per-harness overrides.
+
+```ts
+export function defineCommand(command: Command): Command;
+```
+
+## defineSubagent
+
+Defines a specialist agent prompt with optional tools and target-specific model settings.
+
+```ts
+export function defineSubagent(subagent: Subagent): Subagent;
+```
+
+## defineHook
+
+Defines a lifecycle hook using ap-sdk's portable event names and optional native overrides.
+
+```ts
+export function defineHook(hook: Hook): Hook;
+```
+
+## Plugin
+
+The root declaration: id, description, instructions, skills, commands, MCP servers, subagents, hooks, files, tools, and marketplace metadata.
+
+```ts
+export interface Plugin { id: string; description: string; ... }
+```
+
+## Skill
+
+Reusable instructions plus metadata. Descriptions are capped to the tightest harness limit and drive skill routing.
+
+```ts
+export interface Skill { name: string; description: string; instructions: string; ... }
+```
+
+## Hook
+
+Portable hook event, matcher, command, timeout, async flag, and per-harness event or matcher overrides.
+
+```ts
+export interface Hook { event: HookEvent; command: string | HookCommand; ... }
+```
+
+## build
+
+Validates a plugin and returns in-memory output files and warnings for each requested harness.
+
+```ts
+export function build(plugin: Plugin, options?: BuildOptions): HarnessBuild[];
+```
+
+## installSkills
+
+Installs emitted skills, commands, MCP config, hooks, instructions, subagents, and files into live harness directories.
+
+```ts
+export function installSkills(plugin: Plugin, options?: InstallOptions): InstalledItem[];
+```

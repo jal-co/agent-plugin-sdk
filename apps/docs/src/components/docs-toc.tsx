@@ -6,7 +6,8 @@ import {
   TOCItem,
   type TOCItemType,
 } from "fumadocs-core/toc";
-import { useRef } from "react";
+import { ChevronDown } from "lucide-react";
+import { useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
 /** Table of contents with active-anchor tracking (scrollspy). */
@@ -42,6 +43,44 @@ export function DocsToc({ items }: { items: TOCItemType[] }) {
           </ScrollProvider>
         </div>
       </AnchorProvider>
+    </div>
+  );
+}
+
+/** Mobile: collapsible page-local table of contents. */
+export function MobileDocsToc({ items }: { items: TOCItemType[] }) {
+  const [open, setOpen] = useState(false);
+
+  if (!items.length) return null;
+
+  return (
+    <div className="rounded-xl border border-border/60 bg-card/60 shadow-sm">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        className="flex w-full items-center justify-between gap-2 px-4 py-3 text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+      >
+        <span>On this page</span>
+        <ChevronDown
+          className={cn(
+            "size-4 shrink-0 text-muted-foreground transition-transform duration-200",
+            open && "rotate-180",
+          )}
+        />
+      </button>
+      <div
+        className={cn(
+          "grid transition-[grid-template-rows] duration-200 ease-out",
+          open ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+        )}
+      >
+        <div className="overflow-hidden">
+          <div className="border-t border-border/60 p-4">
+            <DocsToc items={items} />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

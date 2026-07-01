@@ -5,7 +5,13 @@ description: Define a plugin and compile it to every harness in a few minutes.
 
 ## 1. Define a plugin
 
-Create `plugin.ts` and default-export the result of `definePlugin`:
+Start with a working scaffold:
+
+```bash
+npx ap-sdk init my-plugin
+```
+
+That writes a `plugin.ts` you can edit. Or create `plugin.ts` yourself and default-export the result of `definePlugin`:
 
 ```ts title="plugin.ts"
 import {
@@ -74,6 +80,12 @@ npx ap-sdk build -t claude,gemini,cursor
 
 ```bash
 npx ap-sdk install -t claude
+```
+
+For an edit/build/install loop while authoring, run watch mode:
+
+```bash
+npx ap-sdk dev --install -t claude
 ```
 
 Add `--global` to install into your home-directory harness dirs, or `--dry-run`

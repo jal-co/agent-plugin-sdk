@@ -1,0 +1,53 @@
+---
+title: Hooks
+description: Translate lifecycle hooks and scripts across harness event models.
+---
+
+Hooks run commands around tool calls, prompts, sessions, and agent stops. ap-sdk uses a portable event vocabulary and translates native event spellings where a harness supports hooks.
+
+```ts title="plugin.ts"
+import { defineHook, definePlugin } from "@jalco/ap-sdk";
+
+export default definePlugin({
+  id: "plan-review",
+  description: "Review plans before execution.",
+  hooks: [
+    defineHook({
+      event: "pre-tool-use",
+      matcher: "ExitPlanMode",
+      command: { unix: "node hooks/plan-review.mjs", powershell: "node hooks/plan-review.mjs" },
+      timeout: 120,
+      async: true,
+      harness: { codex: { event: "stop", matcher: undefined } },
+    }),
+  ],
+});
+```
+
+## Portable events
+
+| ap-sdk event | Claude | Copilot | Gemini |
+| --- | --- | --- | --- |
+| `pre-tool-use` | `PreToolUse` | `preToolUse` | `BeforeTool` |
+| `post-tool-use` | `PostToolUse` | `postToolUse` | `AfterTool` |
+| `stop` | `Stop` | `stop` | `Stop` |
+| `user-prompt-submit` | `UserPromptSubmit` | `userPromptSubmit` | `UserPromptSubmit` |
+| `session-start` | `SessionStart` | `sessionStart` | `SessionStart` |
+| `notification` | `Notification` | `notification` | `Notification` |
+| `permission-request` | `PermissionRequest` | `permissionRequest` | `PermissionRequest` |
+| `subagent-stop` | `SubagentStop` | `subagentStop` | `SubagentStop` |
+| `pre-compact` | `PreCompact` | `preCompact` | `PreCompact` |
+| `session-end` | `SessionEnd` | `sessionEnd` | `SessionEnd` |
+
+## Fields
+
+- `event`, `matcher`, `command`, and `timeout` define the hook.
+- `async` is native in Claude and dropped with a warning elsewhere.
+- Object commands can provide `unix` and `powershell`; PowerShell is used by Copilot.
+- `harness.<target>.event` and `matcher` override native mapping. Use `matcher: undefined` to explicitly clear a matcher.
+
+<Callout variant="note" title="Code-only harnesses">
+Pi and OpenCode hooks are code-only today; builds note the limitation instead of emitting a misleading artifact.
+</Callout>
+
+Next: [MCP servers](/docs/mcp) and the [support matrix](/docs/harnesses).

@@ -1,16 +1,18 @@
 #!/usr/bin/env node
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, isAbsolute, join, resolve } from "node:path";
+import { dirname, isAbsolute, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import type { HarnessId, Plugin } from "./types.js";
 import { allHarnessIds } from "./harnesses/index.js";
 import { build } from "./build.js";
 import { installSkills } from "./install.js";
+import { uninstallPlugin } from "./uninstall.js";
+import { startDev, writeBuildOutputs } from "./dev.js";
 import { loadPluginTools } from "./load-tools.js";
 import { listTools, callTool, contentToText } from "./runtime/tool.js";
 import { formatWarning } from "./warnings.js";
-import { writeTree } from "./util/fs.js";
 import { fetchGithubPlugin, isGithubSpec } from "./github.js";
+import { fetchNpmPlugin, isNpmSpec } from "./npm.js";
 import { portPlugin } from "./port.js";
 import { DEFAULT_PLUGIN_FILES, locatePlugin } from "./plugin-files.js";
 import { PluginValidationError, validatePlugin } from "./validate.js";
@@ -19,47 +21,56 @@ import {
   deriveDisplayName,
   validateHarnessId,
 } from "./scaffold.js";
+import { gitignoreSnippet, pluginTemplate, validatePluginId } from "./scaffold-plugin.js";
 
 const HELP = `ap-sdk — write a plugin once, ship it to every agent harness
 
 Usage:
-  ap-sdk build   [plugin] [options]   Compile to native artifacts under an output dir
-  ap-sdk install [plugin] [options]   Install skills into local harness dirs
-  ap-sdk check   [plugin]             Validate a plugin definition
-  ap-sdk tools   [plugin] [options]   List the plugin's tools, or invoke one locally
-  ap-sdk add-harness <id> [options]   Scaffold a new target harness module
-  ap-sdk port    [dir] [options]      Generate a portable plugin.ts from an existing plugin
+  ap-sdk init    [id] [options]     Scaffold a new plugin.ts in the current directory
+  ap-sdk build   [plugin] [options]  Compile to native artifacts under an output dir
+  ap-sdk install [plugin] [options]  Install skills into local harness dirs
+  ap-sdk uninstall <plugin-id> [options]   Remove a previously installed plugin
+  ap-sdk dev     [plugin] [options]  Watch the plugin and rebuild on change
+  ap-sdk check   [plugin]            Validate a plugin definition
+  ap-sdk tools   [plugin] [options]  List the plugin's tools, or invoke one locally
+  ap-sdk add-harness <id> [options]  Scaffold a new target harness module
+  ap-sdk port    [dir] [options]     Generate a portable plugin.ts from an existing plugin
 
 Arguments:
   plugin   A local plugin module (default: ./plugin.ts, ./plugin.js,
-           ./ap-sdk.config.ts) or a GitHub source — owner/repo,
-           github:owner/repo, or a github.com URL. Must default-export a
-           definePlugin(...) result. Remote sources are fetched and checked for
-           compatibility before anything is installed.
-  id       (add-harness) kebab-case id for the new harness, e.g. gemini, cursor.
+           ./ap-sdk.config.ts), a GitHub source — owner/repo,
+           github:owner/repo, or a github.com URL — or npm:<package>[@version].
+           Must default-export a definePlugin(...) result. Remote sources are
+           fetched and checked for compatibility before anything is installed.
+  id       init: kebab-case plugin id; add-harness: kebab-case harness id.
 
 Options:
   --target, -t <ids>   Comma-separated harnesses: ${allHarnessIds().join(", ")} (default: all)
   --out, -o <dir>      build: output dir (default: ./.aps-out)
                        add-harness: dir to write the harness file (default: .)
   --name <label>       add-harness: human-readable display name (default: derived from id)
-  --global, -g         install: write to ~ global harness dirs instead of project
-  --dry-run            install/add-harness: print what would be written without writing
+  --global, -g         install/uninstall/dev --install: write to ~ dirs instead of project
+  --install            dev: reinstall after each successful rebuild
+  --dry-run            init/install/uninstall/add-harness: print without writing
   --call <name>        tools: invoke this tool instead of listing
   --args <json>        tools: JSON arguments for --call (default: {})
-  --path <dir>         GitHub source: path to the plugin within the repo
+  --path <dir>         GitHub/npm source: path to the plugin within the repo/package
   --ref <ref>          GitHub source: branch, tag, or commit (or owner/repo#ref)
   --help, -h           Show this help
 
 Examples:
+  ap-sdk init my-plugin
   ap-sdk build
   ap-sdk build ./my-plugin.ts -t claude,codex -o dist
   ap-sdk install -t opencode
+  ap-sdk uninstall git-helper
+  ap-sdk dev --install -t claude
   ap-sdk tools
   ap-sdk tools --call run_tests --args '{"pattern":"sum"}'
   ap-sdk add-harness gemini --name "Gemini CLI"
   ap-sdk install owner/repo
   ap-sdk install github:owner/repo#main -t claude
+  ap-sdk install npm:@acme/git-helper
   ap-sdk check https://github.com/owner/repo --path examples/git-helper
   ap-sdk port ./my-claude-plugin
   ap-sdk port ./my-plugin --dry-run
@@ -77,6 +88,7 @@ interface Args {
   toolArgs?: string;
   path?: string;
   ref?: string;
+  install?: boolean;
   help?: boolean;
 }
 
@@ -96,6 +108,9 @@ function parseArgs(argv: string[]): Args {
         break;
       case "--dry-run":
         args.dryRun = true;
+        break;
+      case "--install":
+        args.install = true;
         break;
       case "--target":
       case "-t":
@@ -129,6 +144,7 @@ function parseArgs(argv: string[]): Args {
         else if (a.startsWith("--name=")) args.name = a.slice(7);
         else if (a.startsWith("--path=")) args.path = a.slice(7);
         else if (a.startsWith("--ref=")) args.ref = a.slice(6);
+        else if (a === "--install") args.install = true;
         else positionals.push(a);
     }
   }
@@ -165,7 +181,7 @@ function resolvePluginPath(explicit?: string): string {
   if (found) return found;
   fail(
     `No plugin file given and none of ${DEFAULT_PLUGIN_FILES.join(", ")} found in ${process.cwd()}.\n` +
-      `Pass a local path or a GitHub source: ap-sdk install ./plugin.ts | owner/repo`,
+      `Pass a local path, GitHub source, or npm source: ap-sdk install ./plugin.ts | owner/repo | npm:pkg`,
   );
 }
 
@@ -220,8 +236,17 @@ async function main(): Promise<void> {
     process.exit(args.command ? 0 : args.help ? 0 : 1);
   }
 
-  // `add-harness` scaffolds a new harness file and needs no plugin definition,
-  // so handle it before we go looking for one.
+  // These commands need no plugin definition, so handle them before we go looking for one.
+  if (args.command === "init") {
+    runInit(args);
+    return;
+  }
+
+  if (args.command === "uninstall") {
+    runUninstall(args);
+    return;
+  }
+
   if (args.command === "add-harness") {
     runAddHarness(args);
     return;
@@ -236,19 +261,31 @@ async function main(): Promise<void> {
 
   await enableTypeScript();
 
-  // A plugin arg that looks like a GitHub source is fetched to a temp checkout,
+  if (args.command === "dev") {
+    await runDev(args);
+    return;
+  }
+
+  // A plugin arg that looks like a remote source is fetched to a temp checkout,
   // compatibility-checked, then handled like a local plugin file.
-  const remote = args.plugin ? isGithubSpec(args.plugin) : false;
+  const githubRemote = args.plugin ? isGithubSpec(args.plugin) : false;
+  const npmRemote = args.plugin ? isNpmSpec(args.plugin) : false;
+  const remote = githubRemote || npmRemote;
   let pluginPath: string;
   let sourceLabel: string | undefined;
 
   if (remote) {
+    if (npmRemote && args.ref) {
+      fail("--ref is only supported for GitHub sources; use npm:<name>@<version> instead.");
+    }
     const spec =
-      args.ref && !args.plugin!.includes("#")
+      githubRemote && args.ref && !args.plugin!.includes("#")
         ? `${args.plugin}#${args.ref}`
         : args.plugin!;
     try {
-      const fetched = await fetchGithubPlugin(spec, { path: args.path });
+      const fetched = githubRemote
+        ? await fetchGithubPlugin(spec, { path: args.path })
+        : await fetchNpmPlugin(spec, { path: args.path });
       pluginPath = fetched.pluginPath;
       sourceLabel = fetched.label;
       // Remove the temp checkout on any exit, including fail()/process.exit.
@@ -333,23 +370,16 @@ function printCompatibility(plugin: Plugin, label: string): void {
 
 function runBuild(plugin: Plugin, args: Args, pluginPath: string): void {
   const outDir = args.out ?? ".aps-out";
-  const builds = build(plugin, { targets: args.targets });
-  // The author's tools module is copied into every output so the generated glue's
-  // `./tools` import resolves with no manual step.
-  const toolsContent = readToolsModule(plugin, pluginPath);
+  const builds = writeBuildOutputs(plugin, pluginPath, {
+    targets: args.targets,
+    out: outDir,
+  });
   console.log(`\n  ${bold(plugin.id)} → ${outDir}/\n`);
   for (const b of builds) {
-    const root = join(process.cwd(), outDir, b.harness);
-    const written = writeTree(root, b.files);
-    let count = written.length;
-    if (toolsContent !== null) {
-      writeFileSync(join(root, "tools.ts"), toolsContent);
-      count++;
-    }
     const w = b.warnings.length
       ? dim(` (${b.warnings.length} warning${b.warnings.length > 1 ? "s" : ""})`)
       : "";
-    console.log(`  ${tick()} ${pad(b.harness)} ${count} files${w}`);
+    console.log(`  ${tick()} ${pad(b.harness)} ${b.files} files${w}`);
   }
 
   // Surface capability gaps the way ai-sdk surfaces result.warnings — grouped,
@@ -397,16 +427,6 @@ function runInstall(plugin: Plugin, args: Args): void {
   console.log("");
 }
 
-/** Read the author's tools module file, or null if the plugin has no tools. */
-function readToolsModule(plugin: Plugin, pluginPath: string): string | null {
-  if (!plugin.tools) return null;
-  const spec = plugin.tools.module;
-  const src = isAbsolute(spec) ? spec : resolve(dirname(pluginPath), spec);
-  if (!existsSync(src)) {
-    fail(`tools module not found: ${src} (from \`tools.module\` = "${spec}")`);
-  }
-  return readFileSync(src, "utf8");
-}
 
 async function runTools(
   plugin: Plugin,
@@ -462,6 +482,103 @@ function runCheck(plugin: Plugin): void {
   console.log(
     `  ${tick()} ${bold(plugin.id)} is valid (${skills} skill(s), ${commands} command(s), ${agents} subagent(s), ${hooks} hook(s), ${mcp} MCP server(s), ${ctx}).`,
   );
+}
+
+
+/** Scaffold a new plugin.ts starter and .gitignore entry. */
+function runInit(args: Args): void {
+  const id = args.plugin ?? "my-plugin";
+  const problem = validatePluginId(id);
+  if (problem) fail(problem);
+
+  const target = resolve(process.cwd(), args.out ?? ".", "plugin.ts");
+  const content = pluginTemplate(id);
+
+  if (existsSync(target)) {
+    fail(`Refusing to overwrite existing file: ${target}`);
+  }
+
+  if (args.dryRun) {
+    console.log(`
+  ${tick()} Would write ${bold(target)}
+`);
+    console.log(content);
+    return;
+  }
+
+  mkdirSync(dirname(target), { recursive: true });
+  writeFileSync(target, content);
+  const ignore = resolve(dirname(target), ".gitignore");
+  const snippet = gitignoreSnippet();
+  if (existsSync(ignore)) {
+    const current = readFileSync(ignore, "utf8");
+    if (!current.split(/\r?\n/).includes(".aps-out/")) {
+      writeFileSync(ignore, `${current.replace(/\s*$/, "")}
+${snippet}`);
+    }
+  } else {
+    writeFileSync(ignore, snippet);
+  }
+
+  console.log(`
+  ${tick()} Created ${bold(target)}
+`);
+  console.log(`  ${bold("Next steps")}`);
+  console.log(`    ${dim("npx ap-sdk check")}`);
+  console.log(`    ${dim("npx ap-sdk build")}`);
+  console.log(`    ${dim("npx ap-sdk install -t <harness>")}
+`);
+}
+
+function runUninstall(args: Args): void {
+  const id = args.plugin;
+  if (!id) fail("uninstall requires a plugin id (e.g. `ap-sdk uninstall git-helper`)");
+  const scope = args.global ? "global" : "project";
+  let removed: ReturnType<typeof uninstallPlugin>;
+  try {
+    removed = uninstallPlugin(id, {
+      targets: args.targets,
+      scope,
+      dryRun: args.dryRun,
+    });
+  } catch (err) {
+    fail((err as Error).message);
+  }
+  const verb = args.dryRun ? "Would remove" : "Removed";
+  console.log(`
+  ${bold(id)} — ${verb} (${scope})
+`);
+  for (const r of removed) {
+    const dest = r.files.length === 0 ? dim("(skipped)") : r.files.join(", ");
+    const mark = r.note ? warn() : tick();
+    console.log(`  ${mark} ${pad(r.harness)} ${pad6(r.kind)} ${r.name} → ${dest}`);
+    if (r.note) console.log(`           ${dim("↳ " + r.note)}`);
+  }
+  console.log("");
+}
+
+async function runDev(args: Args): Promise<void> {
+  if (args.plugin && (isGithubSpec(args.plugin) || isNpmSpec(args.plugin))) {
+    fail("dev requires a local plugin path; remote GitHub/npm sources are not watchable.");
+  }
+  const pluginPath = resolvePluginPath(args.plugin);
+  validateTargets(args.targets);
+  const controller = new AbortController();
+  process.once("SIGINT", () => controller.abort());
+  console.log(`
+  Watching ${bold(dirname(pluginPath))} — ${dim("Ctrl-C to stop")}`);
+  console.log(
+    `  ${dim("On Linux, recursive watching uses the runtime's available fs.watch support.")}
+`,
+  );
+  await startDev({
+    pluginPath,
+    targets: args.targets,
+    out: args.out,
+    install: args.install,
+    scope: args.global ? "global" : "project",
+    signal: controller.signal,
+  });
 }
 
 /**

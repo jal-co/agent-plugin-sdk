@@ -1,0 +1,44 @@
+---
+title: Subagents
+description: Define specialist agents with prompts, tools, and per-harness model hints.
+---
+
+Subagents package a focused prompt under a name so the primary agent can delegate. Claude and OpenCode receive markdown agents, Codex receives developer instructions, and unsupported harnesses emit warnings.
+
+```ts title="plugin.ts"
+import { definePlugin, defineSubagent } from "@jalco/ap-sdk";
+
+export default definePlugin({
+  id: "review-team",
+  description: "Specialist review agents.",
+  subagents: [
+    defineSubagent({
+      name: "security-reviewer",
+      description: "Reviews diffs for auth, secrets, and injection risks.",
+      prompt: "You are a security reviewer. Lead with blockers.",
+      tools: ["Read", "Grep", "Bash"],
+      harness: {
+        claude: { model: "sonnet" },
+        codex: { model: "gpt-5" },
+        opencode: { model: "gpt-5", mode: "subagent" },
+        gemini: { model: "gemini-3-pro", temperature: 0.2, maxTurns: 8 },
+        copilot: { model: "gpt-5" },
+      },
+    }),
+  ],
+});
+```
+
+## Fields
+
+- `name` and `description` identify and route the agent.
+- `prompt` maps to Claude/OpenCode body text and Codex `developer_instructions`.
+- `tools` is honored by Claude Code.
+- `frontmatter` is emitted for YAML-frontmatter harnesses; Codex TOML ignores it.
+- `harness` sets target-specific model and behavior hints, including Gemini `temperature` / `maxTurns` and OpenCode `mode` (`primary`, `subagent`, `all`).
+
+<Callout variant="warning" title="Pi support">
+Pi has no native subagent artifact, so builds for Pi report a structured warning rather than inventing a broken file.
+</Callout>
+
+Next: [hooks](/docs/hooks) and the [support matrix](/docs/harnesses).
