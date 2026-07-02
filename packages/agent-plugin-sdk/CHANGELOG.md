@@ -1,3 +1,50 @@
+## @jalco/ap-sdk@0.4.0
+
+### Per-hook `async` flag and command frontmatter passthrough
+
+- `Hook.async` — mark a hook fire-and-forget. Emitted natively where the harness
+  models it (Claude Code `"async": true`); on harnesses that don't, it's dropped
+  with an `unsupported-option` warning and the hook runs synchronously within its
+  timeout. `ap-sdk port` round-trips it from an existing `hooks.json`.
+- `Command.frontmatter` — the same escape hatch already on `Skill` and
+  `Subagent`, now on `Command`. Extra fields merge into the generated command
+  frontmatter on YAML-frontmatter harnesses (Claude, Codex, OpenCode, Pi,
+  Copilot, Windsurf); known fields win a clash. Gemini (TOML) and Cursor (plain
+  markdown) ignore it. `ap-sdk port` captures unknown command fields into it.
+
+### Add `ap-sdk dev`
+
+Watch mode for plugin authors: `ap-sdk dev` rebuilds on every change to the
+plugin and its referenced files, and `--install` drops the result straight
+into your local harness dirs. Errors keep the watcher alive.
+
+### Add `ap-sdk init`
+
+Scaffold a new plugin project with one command. `ap-sdk init my-plugin` writes
+a working `plugin.ts` (a skill, a command, and instructions) that passes
+`ap-sdk check` as-is, plus a `.gitignore` entry for `.aps-out/`.
+
+### Install plugins from npm
+
+`ap-sdk install npm:<package>` (and `check`/`build` with the same spec)
+fetches a published package from the npm registry, verifies it's a
+compatible plugin, and installs it — with `npm:<package>@<version>` for
+pinning. Packages can point at a non-root plugin file via an
+`ap-sdk.plugin` field in package.json.
+
+### Add a package README
+
+The npm page for `@jalco/ap-sdk` now has a readme covering the full feature
+surface (skills, commands, subagents, hooks, MCP, shared tools) and the
+`ap-sdk port` migration path.
+
+### Add `ap-sdk uninstall`
+
+`install` now records what it wrote to an install manifest
+(`.ap-sdk/install-manifest.json`), and `ap-sdk uninstall <plugin-id>` cleanly
+reverses it — deleting the plugin's files and removing only its entries from
+merged configs (instruction blocks, MCP servers, hooks).
+
 ## @jalco/ap-sdk@0.3.0
 
 ### Ship companion files with a plugin
