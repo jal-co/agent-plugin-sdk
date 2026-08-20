@@ -68,6 +68,36 @@ describe("frontmatter passthrough", () => {
     expect(fm.color).toBe("blue");
   });
 
+  it("warns instead of silently dropping it on Codex (TOML agents)", () => {
+    const codex = builds.find((b) => b.harness === "codex")!;
+    expect(
+      codex.warnings.find(
+        (w) => w.type === "unsupported-option" && w.option === "frontmatter",
+      ),
+    ).toMatchObject({
+      harness: "codex",
+      feature: "subagents",
+      option: "frontmatter",
+      items: ["triage"],
+    });
+    // Still degrades, never breaks: the agent file is emitted, minus the extras.
+    const toml = fileMap(codex.files).get("agents/triage.toml")!;
+    expect(toml).toContain('name = "triage"');
+    expect(toml).not.toContain("color");
+  });
+
+  it("stays quiet on Codex when a subagent has no passthrough", () => {
+    const p = definePlugin({
+      id: "no-extras",
+      description: "x",
+      subagents: [
+        defineSubagent({ name: "plain", description: "d", prompt: "p" }),
+      ],
+    });
+    const codex = build(p).find((b) => b.harness === "codex")!;
+    expect(codex.warnings).toEqual([]);
+  });
+
   it("merges extra fields into a command's YAML frontmatter", () => {
     for (const [id, path] of [
       ["claude", "commands/run.md"],

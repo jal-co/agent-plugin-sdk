@@ -119,6 +119,19 @@ export const codex: Harness = {
           details: "Codex agents have no per-agent tool allowlist.",
         });
       }
+      // Codex agents are TOML with four fixed fields, so passthrough frontmatter
+      // has no native form. Warn rather than dropping the escape hatch silently.
+      if (agent.frontmatter && Object.keys(agent.frontmatter).length > 0) {
+        ctx.warn({
+          type: "unsupported-option",
+          harness: "codex",
+          feature: "subagents",
+          option: "frontmatter",
+          items: [agent.name],
+          details:
+            "Codex agents are TOML with fixed fields, so extra frontmatter has no native form.",
+        });
+      }
       files.push({
         path: `agents/${agent.name}.toml`,
         content: codexAgentToml({
