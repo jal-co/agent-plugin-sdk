@@ -356,7 +356,8 @@ export interface Subagent {
    * Escape hatch for extra native frontmatter fields the SDK doesn't model
    * (e.g. `effort`, or a nested `stage:` block). Merged into the agent
    * frontmatter on YAML-frontmatter harnesses (Claude, OpenCode, Copilot,
-   * Gemini); the SDK's own fields win on a key clash. Codex (TOML) ignores it.
+   * Gemini); the SDK's own fields win on a key clash. Codex (TOML) has no field
+   * for it, so it is dropped with an `unsupported-option` warning.
    */
   frontmatter?: Record<string, unknown>;
   /**
