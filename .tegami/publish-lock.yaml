@@ -1,31 +1,11 @@
 core:changelogs:
-  - content: "---\npackages:\n  '@jalco/ap-sdk':\n    type: minor\n---\n\n## Per-hook `async` flag and command frontmatter passthrough\n\n- `Hook.async` — mark a hook fire-and-forget. Emitted natively where the harness\n  models it (Claude Code `\"async\": true`); on harnesses that don't, it's dropped\n  with an `unsupported-option` warning and the hook runs synchronously within its\n  timeout. `ap-sdk port` round-trips it from an existing `hooks.json`.\n- `Command.frontmatter` — the same escape hatch already on `Skill` and\n  `Subagent`, now on `Command`. Extra fields merge into the generated command\n  frontmatter on YAML-frontmatter harnesses (Claude, Codex, OpenCode, Pi,\n  Copilot, Windsurf); known fields win a clash. Gemini (TOML) and Cursor (plain\n  markdown) ignore it. `ap-sdk port` captures unknown command fields into it.\n"
-    filename: 2026-06-30-hook-async-and-command-frontmatter.md
-    v: 0.0.0
-  - content: "---\npackages:\n  '@jalco/ap-sdk':\n    type: minor\n---\n\n## Add `ap-sdk dev`\n\nWatch mode for plugin authors: `ap-sdk dev` rebuilds on every change to the\nplugin and its referenced files, and `--install` drops the result straight\ninto your local harness dirs. Errors keep the watcher alive.\n"
-    filename: 2026-07-01-dev-watch.md
-    v: 0.0.0
-  - content: "---\npackages:\n  '@jalco/ap-sdk':\n    type: minor\n---\n\n## Add `ap-sdk init`\n\nScaffold a new plugin project with one command. `ap-sdk init my-plugin` writes\na working `plugin.ts` (a skill, a command, and instructions) that passes\n`ap-sdk check` as-is, plus a `.gitignore` entry for `.aps-out/`.\n"
-    filename: 2026-07-01-init-command.md
-    v: 0.0.0
-  - content: "---\npackages:\n  '@jalco/ap-sdk':\n    type: minor\n---\n\n## Install plugins from npm\n\n`ap-sdk install npm:<package>` (and `check`/`build` with the same spec)\nfetches a published package from the npm registry, verifies it's a\ncompatible plugin, and installs it — with `npm:<package>@<version>` for\npinning. Packages can point at a non-root plugin file via an\n`ap-sdk.plugin` field in package.json.\n"
-    filename: 2026-07-01-npm-source.md
-    v: 0.0.0
-  - content: "---\npackages:\n  '@jalco/ap-sdk':\n    type: patch\n---\n\n### Add a package README\n\nThe npm page for `@jalco/ap-sdk` now has a readme covering the full feature\nsurface (skills, commands, subagents, hooks, MCP, shared tools) and the\n`ap-sdk port` migration path.\n"
-    filename: 2026-07-01-package-readme.md
-    v: 0.0.0
-  - content: "---\npackages:\n  '@jalco/ap-sdk':\n    type: minor\n---\n\n## Add `ap-sdk uninstall`\n\n`install` now records what it wrote to an install manifest\n(`.ap-sdk/install-manifest.json`), and `ap-sdk uninstall <plugin-id>` cleanly\nreverses it — deleting the plugin's files and removing only its entries from\nmerged configs (instruction blocks, MCP servers, hooks).\n"
-    filename: 2026-07-01-uninstall.md
+  - content: "---\npackages:\n  '@jalco/ap-sdk':\n    type: patch\n---\n\n### Warn when Codex drops a subagent's `frontmatter` passthrough\n\nCodex agents are TOML with fixed fields, so `Subagent.frontmatter` has no native form there and is dropped. That drop is now reported as an `unsupported-option` `BuildWarning`, alongside the `tools` warning already emitted for the same agent. It used to be silent, so a caller reading `warnings[]` could not tell that the escape hatch had been discarded.\n"
+    filename: 2026-08-20-codex-subagent-frontmatter-warning.md
     v: 0.0.0
 core:packages:
   - id: npm:@jal-co/docs
     updated: true
   - changelogIds:
-      - 2026-06-30-hook-async-and-command-frontmatter.md
-      - 2026-07-01-dev-watch.md
-      - 2026-07-01-init-command.md
-      - 2026-07-01-npm-source.md
-      - 2026-07-01-package-readme.md
-      - 2026-07-01-uninstall.md
+      - 2026-08-20-codex-subagent-frontmatter-warning.md
     id: npm:@jalco/ap-sdk
     updated: true

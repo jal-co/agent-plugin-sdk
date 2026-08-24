@@ -1,3 +1,9 @@
+## @jalco/ap-sdk@0.4.1
+
+### Warn when Codex drops a subagent's `frontmatter` passthrough
+
+Codex agents are TOML with fixed fields, so `Subagent.frontmatter` has no native form there and is dropped. That drop is now reported as an `unsupported-option` `BuildWarning`, alongside the `tools` warning already emitted for the same agent. It used to be silent, so a caller reading `warnings[]` could not tell that the escape hatch had been discarded.
+
 ## @jalco/ap-sdk@0.4.0
 
 ### Per-hook `async` flag and command frontmatter passthrough
