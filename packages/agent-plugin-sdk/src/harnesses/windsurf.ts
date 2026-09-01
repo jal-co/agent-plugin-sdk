@@ -7,8 +7,18 @@ import {
   mergeFrontmatter,
   renderFrontmatterDoc,
 } from "../util/frontmatter.js";
-import type { Harness, InstallScope } from "./types.js";
-import { emitContextFile, emitSkillDir, json } from "./shared.js";
+import type { EmitContext, Harness, InstallScope } from "./types.js";
+import {
+  emitContextFile,
+  emitSkillDir,
+  json,
+  warnCommandAllowedTools,
+  warnCommandArgumentHint,
+  warnSkillAllowedTools,
+  warnSkillDisableModelInvocation,
+  warnSkillLicense,
+  warnSkillMetadata,
+} from "./shared.js";
 import { toWindsurfEntry } from "./mcp.js";
 import { mcpServerEntry, toolServerMcp } from "./tools.js";
 
@@ -48,7 +58,7 @@ export const windsurf: Harness = {
 
   contextFileName: "AGENTS.md",
 
-  emit(plugin: Plugin): OutputFile[] {
+  emit(plugin: Plugin, ctx: EmitContext): OutputFile[] {
     const files: OutputFile[] = [];
 
     if (plugin.instructions?.trim()) {
@@ -63,6 +73,13 @@ export const windsurf: Harness = {
         name: skill.name,
         description: skill.description,
       });
+      if (skill.allowedTools?.length)
+        warnSkillAllowedTools(ctx, "windsurf", skill.name);
+      if (skill.disableModelInvocation)
+        warnSkillDisableModelInvocation(ctx, "windsurf", skill.name);
+      if (skill.license) warnSkillLicense(ctx, "windsurf", skill.name);
+      if (skill.metadata && Object.keys(skill.metadata).length > 0)
+        warnSkillMetadata(ctx, "windsurf", skill.name);
       files.push(...emitSkillDir(skill, frontmatter, ".windsurf/skills"));
     }
 
@@ -71,6 +88,10 @@ export const windsurf: Harness = {
     // Windsurf appends the user's input, so the body passes through.
     for (const command of plugin.commands ?? []) {
       const frontmatter = compact({ description: command.description });
+      if (command.argumentHint)
+        warnCommandArgumentHint(ctx, "windsurf", command.name);
+      if (command.allowedTools?.length)
+        warnCommandAllowedTools(ctx, "windsurf", command.name);
       files.push({
         path: `.windsurf/workflows/${command.name}.md`,
         content: renderFrontmatterDoc(

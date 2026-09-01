@@ -9,6 +9,10 @@ import {
   emitContextFile,
   emitSkillDir,
   json,
+  warnCommandAllowedTools,
+  warnSkillAllowedTools,
+  warnSkillDisableModelInvocation,
+  warnSkillLicense,
 } from "./shared.js";
 import { toCodexEntry } from "./mcp.js";
 import { buildMatcherHooks } from "./hooks.js";
@@ -79,6 +83,11 @@ export const codex: Harness = {
         name: skill.name,
         description: skill.description,
       };
+      if (skill.allowedTools?.length)
+        warnSkillAllowedTools(ctx, "codex", skill.name);
+      if (skill.disableModelInvocation)
+        warnSkillDisableModelInvocation(ctx, "codex", skill.name);
+      if (skill.license) warnSkillLicense(ctx, "codex", skill.name);
       files.push(...emitSkillDir(skill, frontmatter, "skills"));
     }
 
@@ -92,6 +101,8 @@ export const codex: Harness = {
         description: command.description,
         "argument-hint": command.argumentHint,
       });
+      if (command.allowedTools?.length)
+        warnCommandAllowedTools(ctx, "codex", command.name);
       files.push(
         emitCommandFile(
           command.name,

@@ -3,12 +3,13 @@ import { join } from "node:path";
 import type { OutputFile, Plugin } from "../types.js";
 import { compact } from "../util/frontmatter.js";
 import { SDK_VERSION } from "../version.js";
-import type { Harness, InstallScope } from "./types.js";
+import type { EmitContext, Harness, InstallScope } from "./types.js";
 import {
   emitCommandFile,
   emitContextFile,
   emitSkillDir,
   json,
+  warnCommandAllowedTools,
 } from "./shared.js";
 import { piExtensionEntry } from "./tools.js";
 
@@ -51,7 +52,7 @@ export const pi: Harness = {
 
   contextFileName: "AGENTS.md",
 
-  emit(plugin: Plugin): OutputFile[] {
+  emit(plugin: Plugin, ctx: EmitContext): OutputFile[] {
     const files: OutputFile[] = [];
     const hasSkills = (plugin.skills ?? []).length > 0;
     const hasCommands = (plugin.commands ?? []).length > 0;
@@ -111,6 +112,8 @@ export const pi: Harness = {
         description: command.description,
         "argument-hint": command.argumentHint,
       });
+      if (command.allowedTools?.length)
+        warnCommandAllowedTools(ctx, "pi", command.name);
       files.push(
         emitCommandFile(
           command.name,

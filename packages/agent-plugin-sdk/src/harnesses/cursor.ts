@@ -2,8 +2,14 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 import type { OutputFile, Plugin } from "../types.js";
 import { compact, mapValues } from "../util/frontmatter.js";
-import type { Harness, InstallScope } from "./types.js";
-import { emitContextFile, json } from "./shared.js";
+import type { EmitContext, Harness, InstallScope } from "./types.js";
+import {
+  emitContextFile,
+  json,
+  warnCommandAllowedTools,
+  warnCommandArgumentHint,
+  warnCommandFrontmatter,
+} from "./shared.js";
 import { toCursorEntry } from "./mcp.js";
 import { mcpServerEntry, toolServerMcp } from "./tools.js";
 
@@ -47,7 +53,7 @@ export const cursor: Harness = {
 
   contextFileName: "AGENTS.md",
 
-  emit(plugin: Plugin): OutputFile[] {
+  emit(plugin: Plugin, ctx: EmitContext): OutputFile[] {
     const files: OutputFile[] = [];
 
     if (plugin.instructions?.trim()) {
@@ -60,6 +66,12 @@ export const cursor: Harness = {
     // slash-command name; Cursor appends the user's input, so the body is passed
     // through untouched.
     for (const command of plugin.commands ?? []) {
+      if (command.argumentHint)
+        warnCommandArgumentHint(ctx, "cursor", command.name);
+      if (command.allowedTools?.length)
+        warnCommandAllowedTools(ctx, "cursor", command.name);
+      if (command.frontmatter && Object.keys(command.frontmatter).length > 0)
+        warnCommandFrontmatter(ctx, "cursor", command.name);
       files.push({
         path: `.cursor/commands/${command.name}.md`,
         content: command.body.trimEnd() + "\n",

@@ -3,7 +3,14 @@ import { join } from "node:path";
 import type { OutputFile, Plugin } from "../types.js";
 import { compact, mapValues, mergeFrontmatter, renderFrontmatterDoc } from "../util/frontmatter.js";
 import type { EmitContext, Harness, InstallScope } from "./types.js";
-import { emitContextFile, emitSkillDir, json } from "./shared.js";
+import {
+  emitContextFile,
+  emitSkillDir,
+  json,
+  warnSkillAllowedTools,
+  warnSkillLicense,
+  warnSkillMetadata,
+} from "./shared.js";
 import { toCopilotEntry } from "./mcp.js";
 import { buildCopilotHooks } from "./hooks.js";
 import { mcpServerEntry, toolServerMcp } from "./tools.js";
@@ -56,6 +63,11 @@ export const copilot: Harness = {
         description: skill.description,
         "disable-model-invocation": skill.disableModelInvocation || undefined,
       });
+      if (skill.allowedTools?.length)
+        warnSkillAllowedTools(ctx, "copilot", skill.name);
+      if (skill.license) warnSkillLicense(ctx, "copilot", skill.name);
+      if (skill.metadata && Object.keys(skill.metadata).length > 0)
+        warnSkillMetadata(ctx, "copilot", skill.name);
       files.push(...emitSkillDir(skill, frontmatter, ".github/skills"));
     }
 

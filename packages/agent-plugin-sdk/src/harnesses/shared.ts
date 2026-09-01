@@ -1,5 +1,6 @@
-import type { OutputFile, Skill } from "../types.js";
+import type { HarnessId, OutputFile, Skill } from "../types.js";
 import { mergeFrontmatter, renderFrontmatterDoc } from "../util/frontmatter.js";
+import type { EmitContext } from "./types.js";
 
 /**
  * Emit a skill directory: the `SKILL.md` (with the harness-specific frontmatter
@@ -37,6 +38,125 @@ export function emitSkillDir(
 /** Serialize a manifest object to pretty JSON with a trailing newline. */
 export function json(data: unknown): string {
   return JSON.stringify(data, null, 2) + "\n";
+}
+
+/*
+ * Per-option warnings for declared fields a harness's native format cannot
+ * carry. One helper per option, shared like the hook warnings in hooks.ts,
+ * because several emitters drop a different subset of the same fields. The
+ * emit site guards explicitly and calls the helper for each dropped field.
+ */
+
+/** Warn (once per skill) that this harness dropped `allowedTools`. */
+export function warnSkillAllowedTools(
+  ctx: EmitContext,
+  harness: HarnessId,
+  skill: string,
+): void {
+  ctx.warn({
+    type: "unsupported-option",
+    harness,
+    feature: "skills",
+    option: "allowedTools",
+    items: [skill],
+    details: `${harness} skills have no allowed-tools frontmatter field.`,
+  });
+}
+
+/** Warn (once per skill) that this harness dropped `disableModelInvocation`. */
+export function warnSkillDisableModelInvocation(
+  ctx: EmitContext,
+  harness: HarnessId,
+  skill: string,
+): void {
+  ctx.warn({
+    type: "unsupported-option",
+    harness,
+    feature: "skills",
+    option: "disableModelInvocation",
+    items: [skill],
+    details: `${harness} skills have no disable-model-invocation frontmatter field.`,
+  });
+}
+
+/** Warn (once per skill) that this harness dropped `license`. */
+export function warnSkillLicense(
+  ctx: EmitContext,
+  harness: HarnessId,
+  skill: string,
+): void {
+  ctx.warn({
+    type: "unsupported-option",
+    harness,
+    feature: "skills",
+    option: "license",
+    items: [skill],
+    details: `${harness} skill frontmatter has no license field.`,
+  });
+}
+
+/** Warn (once per skill) that this harness dropped `metadata`. */
+export function warnSkillMetadata(
+  ctx: EmitContext,
+  harness: HarnessId,
+  skill: string,
+): void {
+  ctx.warn({
+    type: "unsupported-option",
+    harness,
+    feature: "skills",
+    option: "metadata",
+    items: [skill],
+    details: `${harness} skill frontmatter has no metadata field.`,
+  });
+}
+
+/** Warn (once per command) that this harness dropped `allowedTools`. */
+export function warnCommandAllowedTools(
+  ctx: EmitContext,
+  harness: HarnessId,
+  command: string,
+): void {
+  ctx.warn({
+    type: "unsupported-option",
+    harness,
+    feature: "commands",
+    option: "allowedTools",
+    items: [command],
+    details: `${harness} commands have no tool allowlist field.`,
+  });
+}
+
+/** Warn (once per command) that this harness dropped `argumentHint`. */
+export function warnCommandArgumentHint(
+  ctx: EmitContext,
+  harness: HarnessId,
+  command: string,
+): void {
+  ctx.warn({
+    type: "unsupported-option",
+    harness,
+    feature: "commands",
+    option: "argumentHint",
+    items: [command],
+    details: `${harness} commands have no argument-hint field.`,
+  });
+}
+
+/** Warn (once per command) that this harness dropped passthrough `frontmatter`. */
+export function warnCommandFrontmatter(
+  ctx: EmitContext,
+  harness: HarnessId,
+  command: string,
+): void {
+  ctx.warn({
+    type: "unsupported-option",
+    harness,
+    feature: "commands",
+    option: "frontmatter",
+    items: [command],
+    details: `${harness} commands have no frontmatter to merge extra fields into.`,
+  });
 }
 
 /** Escape a TOML single-line basic string value (without surrounding quotes). */

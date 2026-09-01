@@ -35,9 +35,9 @@ export default definePlugin({
 
 ## Fields
 
-- `name`, `description`, `argumentHint`, and `body` define the command.
-- `allowedTools` is honored by Claude Code.
-- `frontmatter` is honored by YAML-frontmatter harnesses; Gemini TOML and Cursor plain markdown ignore it.
+- `name`, `description`, `argumentHint`, and `body` define the command. `argumentHint` is emitted on Claude Code, Codex, Pi, and Copilot. The other harnesses drop it with an `unsupported-option` warning.
+- `allowedTools` is honored by Claude Code. Codex, Pi, OpenCode, Gemini, Cursor, and Windsurf drop it with an `unsupported-option` warning. The Copilot emitter does not emit it yet.
+- `frontmatter` is honored by YAML-frontmatter harnesses. Gemini TOML and Cursor plain markdown drop it with an `unsupported-option` warning.
 - `harness.claude.model`, `harness.opencode.model`, and `harness.copilot.model` / `agent` set native model hints.
 
 ## Portability notes
