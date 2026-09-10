@@ -1,11 +1,11 @@
 core:changelogs:
-  - content: "---\npackages:\n  '@jalco/ap-sdk':\n    type: patch\n---\n\n### Warn when Codex drops a subagent's `frontmatter` passthrough\n\nCodex agents are TOML with fixed fields, so `Subagent.frontmatter` has no native form there and is dropped. That drop is now reported as an `unsupported-option` `BuildWarning`, alongside the `tools` warning already emitted for the same agent. It used to be silent, so a caller reading `warnings[]` could not tell that the escape hatch had been discarded.\n"
-    filename: 2026-08-20-codex-subagent-frontmatter-warning.md
+  - content: "---\npackages:\n  '@jalco/ap-sdk':\n    type: patch\n---\n\n### Warn for silently dropped skill, command, and hook options\n\nEmitters that cannot represent a declared optional field now record an `unsupported-option` warning instead of dropping the field silently, the same contract the Codex subagent warnings already followed. This covers `allowedTools`, `disableModelInvocation`, `license`, and `metadata` on skills, `allowedTools`, `argumentHint`, and passthrough `frontmatter` on commands, and the `powershell` hook command variant on harnesses with a single command slot. Output files are unchanged: the build still degrades, and `warnings[]` now tells the caller what was lost.\n"
+    filename: 2026-09-01-unsupported-option-warnings.md
     v: 0.0.0
 core:packages:
   - id: npm:@jal-co/docs
     updated: true
   - changelogIds:
-      - 2026-08-20-codex-subagent-frontmatter-warning.md
+      - 2026-09-01-unsupported-option-warnings.md
     id: npm:@jalco/ap-sdk
     updated: true
