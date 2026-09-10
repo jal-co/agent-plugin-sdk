@@ -10,6 +10,13 @@ import {
   hasPositionalArgs,
   json,
   rewriteArgsToGemini,
+  warnCommandAllowedTools,
+  warnCommandArgumentHint,
+  warnCommandFrontmatter,
+  warnSkillAllowedTools,
+  warnSkillDisableModelInvocation,
+  warnSkillLicense,
+  warnSkillMetadata,
 } from "./shared.js";
 import { toGeminiEntry } from "./mcp.js";
 import { buildMatcherHooks } from "./hooks.js";
@@ -96,6 +103,13 @@ export const gemini: Harness = {
         name: skill.name,
         description: skill.description,
       });
+      if (skill.allowedTools?.length)
+        warnSkillAllowedTools(ctx, "gemini", skill.name);
+      if (skill.disableModelInvocation)
+        warnSkillDisableModelInvocation(ctx, "gemini", skill.name);
+      if (skill.license) warnSkillLicense(ctx, "gemini", skill.name);
+      if (skill.metadata && Object.keys(skill.metadata).length > 0)
+        warnSkillMetadata(ctx, "gemini", skill.name);
       files.push(...emitSkillDir(skill, frontmatter, "skills"));
     }
 
@@ -115,6 +129,12 @@ export const gemini: Harness = {
             "Gemini commands only support `{{args}}` (all arguments); positional tokens are left literal.",
         });
       }
+      if (command.argumentHint)
+        warnCommandArgumentHint(ctx, "gemini", command.name);
+      if (command.allowedTools?.length)
+        warnCommandAllowedTools(ctx, "gemini", command.name);
+      if (command.frontmatter && Object.keys(command.frontmatter).length > 0)
+        warnCommandFrontmatter(ctx, "gemini", command.name);
       files.push({
         path: `commands/${command.name}.toml`,
         content: geminiCommandToml({

@@ -31,10 +31,10 @@ export default definePlugin({
 - `name` — kebab-case id, max 64 characters.
 - `description` — max 1024 characters, the tightest harness limit; front-load trigger conditions because agents use this to decide when to load the skill.
 - `instructions` — the skill body.
-- `allowedTools` — honored by Claude Code and Pi.
-- `disableModelInvocation` — Pi-specific.
-- `license` — emitted where native skill metadata supports it.
-- `metadata` — honored by OpenCode and Pi.
+- `allowedTools` — honored by Claude Code and Pi. Other skill-capable harnesses drop it with an `unsupported-option` warning.
+- `disableModelInvocation` — honored by Pi and Copilot. Codex, OpenCode, Gemini, and Windsurf drop it with an `unsupported-option` warning.
+- `license` — emitted where native skill metadata supports it (Pi, OpenCode). Codex, Copilot, Gemini, and Windsurf drop it with an `unsupported-option` warning.
+- `metadata` — honored by OpenCode and Pi. Copilot, Gemini, and Windsurf drop it with an `unsupported-option` warning.
 - `frontmatter` — escape hatch merged into YAML-frontmatter harnesses; SDK-owned fields win on conflicts.
 - `resources` — extra files emitted inside the skill directory.
 

@@ -70,17 +70,28 @@ export interface Skill {
   /**
    * Tools the skill is pre-approved to use, e.g. `["Bash(git add *)", "Read"]`.
    * Emitted where the harness supports an `allowed-tools` frontmatter field
-   * (Claude Code, Pi); ignored elsewhere.
+   * (Claude Code, Pi). Codex, OpenCode, Copilot, Gemini, and Windsurf drop it
+   * with an `unsupported-option` warning.
    */
   allowedTools?: string[];
   /**
    * When `true`, the agent may not auto-invoke the skill — only the user can.
-   * Emitted where supported (Pi `disable-model-invocation`); ignored elsewhere.
+   * Emitted where supported (Pi, Copilot `disable-model-invocation`). Codex,
+   * OpenCode, Gemini, and Windsurf drop it with an `unsupported-option`
+   * warning. The Claude Code emitter does not emit it yet.
    */
   disableModelInvocation?: boolean;
-  /** SPDX license string, surfaced in frontmatter where the harness records it. */
+  /**
+   * SPDX license string, surfaced in frontmatter where the harness records it
+   * (Pi, OpenCode). Codex, Copilot, Gemini, and Windsurf drop it with an
+   * `unsupported-option` warning.
+   */
   license?: string;
-  /** Free-form metadata map, emitted where the harness supports it (OpenCode, Pi). */
+  /**
+   * Free-form metadata map, emitted where the harness supports it (OpenCode,
+   * Pi). Copilot, Gemini, and Windsurf drop it with an `unsupported-option`
+   * warning.
+   */
   metadata?: Record<string, string>;
   /**
    * Escape hatch for extra native frontmatter fields the SDK doesn't model
@@ -116,18 +127,26 @@ export interface Command {
   description: string;
   /** The prompt template run when the command is invoked. See argument templating above. */
   body: string;
-  /** Autocomplete hint for arguments, e.g. `[issue-number]` or `<pr-url>`. */
+  /**
+   * Autocomplete hint for arguments, e.g. `[issue-number]` or `<pr-url>`.
+   * Emitted on Claude Code, Codex, Pi, and Copilot. OpenCode, Gemini, Cursor,
+   * and Windsurf drop it with an `unsupported-option` warning.
+   */
   argumentHint?: string;
   /**
    * Tools the command is pre-approved to use while running. Emitted where the
-   * harness supports it (Claude Code `allowed-tools`); ignored elsewhere.
+   * harness supports it (Claude Code `allowed-tools`). Codex, Pi, OpenCode,
+   * Gemini, Cursor, and Windsurf drop it with an `unsupported-option` warning.
+   * The Copilot emitter does not emit it yet.
    */
   allowedTools?: string[];
   /**
    * Escape hatch for extra native frontmatter fields the SDK doesn't model.
    * Merged into the generated command frontmatter on YAML-frontmatter harnesses
    * (Claude, Codex, OpenCode, Pi, Copilot, Windsurf); the SDK's own fields win
-   * on a key clash. Gemini (TOML) and Cursor (plain markdown) ignore it.
+   * on a key clash. Gemini (TOML) and Cursor (plain markdown) have no
+   * frontmatter to merge into, so they drop it with an `unsupported-option`
+   * warning.
    */
   frontmatter?: Record<string, unknown>;
   /**
@@ -196,6 +215,8 @@ export type HookEvent =
 /**
  * A command to run for a hook. A bare string runs on every platform; use the
  * object form to give a separate PowerShell invocation (Copilot supports this).
+ * Claude Code, Codex, and Gemini hook entries have a single command slot, so
+ * they use `bash` and drop `powershell` with an `unsupported-option` warning.
  */
 export type HookCommand = string | { bash: string; powershell?: string };
 

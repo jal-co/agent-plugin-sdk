@@ -13,6 +13,10 @@ import {
   emitContextFile,
   emitSkillDir,
   json,
+  warnCommandAllowedTools,
+  warnCommandArgumentHint,
+  warnSkillAllowedTools,
+  warnSkillDisableModelInvocation,
 } from "./shared.js";
 import { toOpenCodeEntry } from "./mcp.js";
 import { openCodePluginEntry } from "./tools.js";
@@ -84,6 +88,10 @@ export const opencode: Harness = {
         compatibility: "opencode",
         metadata: skill.metadata,
       });
+      if (skill.allowedTools?.length)
+        warnSkillAllowedTools(ctx, "opencode", skill.name);
+      if (skill.disableModelInvocation)
+        warnSkillDisableModelInvocation(ctx, "opencode", skill.name);
       files.push(...emitSkillDir(skill, frontmatter, "skills"));
     }
 
@@ -95,6 +103,10 @@ export const opencode: Harness = {
         description: command.description,
         model: command.harness?.opencode?.model,
       });
+      if (command.argumentHint)
+        warnCommandArgumentHint(ctx, "opencode", command.name);
+      if (command.allowedTools?.length)
+        warnCommandAllowedTools(ctx, "opencode", command.name);
       files.push(
         emitCommandFile(
           command.name,

@@ -90,6 +90,20 @@ function warnAsync(ctx: EmitContext | undefined, harness: HarnessId): void {
   });
 }
 
+/** Warn (once per hook) that a harness dropped the `powershell` command variant. */
+function warnPowershell(ctx: EmitContext | undefined, harness: HarnessId): void {
+  ctx?.warn({
+    type: "unsupported-option",
+    harness,
+    feature: "hooks",
+    option: "powershell",
+    items: ["powershell"],
+    details:
+      `${harness} hook entries have a single command slot with no ` +
+      "per-platform variant, so the `bash` command is used everywhere.",
+  });
+}
+
 /** Warn (once per hook) that a harness has no native form for this event. */
 function warnEvent(
   ctx: EmitContext | undefined,
@@ -130,6 +144,9 @@ export function buildMatcherHooks(
     if (!event) {
       warnEvent(ctx, harness, hook.event);
       continue;
+    }
+    if (typeof hook.command !== "string" && hook.command.powershell) {
+      warnPowershell(ctx, harness);
     }
     const inner: Record<string, unknown> = {
       type: "command",

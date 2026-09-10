@@ -15,7 +15,7 @@ export default definePlugin({
     defineHook({
       event: "pre-tool-use",
       matcher: "ExitPlanMode",
-      command: { unix: "node hooks/plan-review.mjs", powershell: "node hooks/plan-review.mjs" },
+      command: { bash: "node hooks/plan-review.mjs", powershell: "node hooks/plan-review.mjs" },
       timeout: 120,
       async: true,
       harness: { codex: { event: "stop", matcher: undefined } },
@@ -43,7 +43,7 @@ export default definePlugin({
 
 - `event`, `matcher`, `command`, and `timeout` define the hook.
 - `async` is native in Claude and dropped with a warning elsewhere.
-- Object commands can provide `unix` and `powershell`; PowerShell is used by Copilot.
+- Object commands can provide `bash` and `powershell`. Copilot emits the PowerShell variant as `windows`. Claude Code, Codex, and Gemini have a single command slot, so they use `bash` and drop `powershell` with an `unsupported-option` warning.
 - `harness.<target>.event` and `matcher` override native mapping. Use `matcher: undefined` to explicitly clear a matcher.
 
 <Callout variant="note" title="Code-only harnesses">
